@@ -1,16 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useModal } from './ModalContext';
 import { Button } from './modern-ui/button';
+import { useAuth } from './AuthProvider';
 import {
-  buildSupabaseSignInPayload,
-  buildSupabaseSignUpPayload,
   type AuthFormState,
   type AuthMode,
   validateAuthForm,
 } from '../lib/utils';
 
 interface GlobalModalProps {
-  onAuthSubmit?: (payload: unknown, mode: AuthMode) => void | Promise<void>;
   onModeChange?: (mode: AuthMode) => void;
 }
 
@@ -22,13 +20,16 @@ const initialFormState: AuthFormState = {
   remember: false,
 };
 
-export const GlobalModal: React.FC<GlobalModalProps> = ({ onAuthSubmit, onModeChange }) => {
+export const GlobalModal: React.FC<GlobalModalProps> = ({ onModeChange }) => {
   const { open, type, closeModal, openModal } = useModal();
+  const { signIn, signUp } = useAuth();
   const [formState, setFormState] = useState<AuthFormState>(initialFormState);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
     setFormState(initialFormState);
     setFormError(null);
+    setIsSubmitting(false);
   }, [type]);
 
   const isSignup = type === 'signup';
@@ -47,6 +48,7 @@ export const GlobalModal: React.FC<GlobalModalProps> = ({ onAuthSubmit, onModeCh
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!type) return;
+    if (isSubmitting) return;
 
     const validationError = validateAuthForm(type, formState);
     if (validationError) {
@@ -54,13 +56,24 @@ export const GlobalModal: React.FC<GlobalModalProps> = ({ onAuthSubmit, onModeCh
       return;
     }
 
-    const payload = isSignup
-      ? buildSupabaseSignUpPayload(formState)
-      : buildSupabaseSignInPayload(formState);
-
     setFormError(null);
-    if (onAuthSubmit) {
-      await onAuthSubmit(payload, type);
+    setIsSubmitting(true);
+    try {
+      const errorMessage = isSignup
+        ? await signUp(formState.email, formState.password, formState.fullName)
+        : await signIn(formState.email, formState.password);
+
+      if (errorMessage) {
+        setFormError(errorMessage);
+        return;
+      }
+
+      closeModal();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+      setFormError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -145,8 +158,13 @@ export const GlobalModal: React.FC<GlobalModalProps> = ({ onAuthSubmit, onModeCh
               {formError}
             </div>
           )}
-          <Button className="w-full rounded-full mt-2" variant="default" type="submit">
-            {primaryLabel}
+          <Button
+            className="w-full rounded-full mt-2"
+            variant="default"
+            type="submit"
+            loading={isSubmitting}
+          >
+            {isSubmitting ? 'Please wait...' : primaryLabel}
           </Button>
         </form>
         <div className="mt-5 text-center">

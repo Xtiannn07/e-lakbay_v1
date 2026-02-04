@@ -1,0 +1,24 @@
+create table public.product_ratings (
+  id uuid not null default gen_random_uuid (),
+  product_id uuid not null,
+  user_id uuid not null,
+  rating integer not null,
+  comment text null,
+  created_at timestamp with time zone null default now(),
+  constraint product_ratings_pkey primary key (id),
+  constraint product_ratings_product_id_fkey foreign KEY (product_id) references products (id) on delete CASCADE,
+  constraint product_ratings_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE,
+  constraint product_ratings_rating_check check (
+    (
+      (rating >= 1)
+      and (rating <= 5)
+    )
+  )
+) TABLESPACE pg_default;
+
+create trigger trg_product_ratings_agg
+after INSERT
+or DELETE
+or
+update on product_ratings for EACH row
+execute FUNCTION update_product_ratings ();

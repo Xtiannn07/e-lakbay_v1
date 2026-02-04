@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavBar } from './components/NavBar';
-import { HeroSection } from './components/HeroSection';
 import { ModalProvider } from './components/ModalContext';
 import { GlobalModal } from './components/GlobalModal';
+import { AuthProvider, useAuth } from './components/AuthProvider';
+import { DashboardPage } from './pages/DashboardPage';
+import { HomePage } from './pages/HomePage';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [active, setActive] = useState<'login' | 'signup'>('login');
+  const { user, profile, loading, signOut } = useAuth();
+  const [view, setView] = useState<'home' | 'dashboard'>('home');
+
+  useEffect(() => {
+    if (user) {
+      setView('dashboard');
+    } else {
+      setView('home');
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <ModalProvider>
@@ -14,12 +34,25 @@ const App: React.FC = () => {
           <NavBar
             active={active}
             onActiveChange={setActive}
+            isAuthenticated={Boolean(user)}
+            profile={profile}
+            onDashboard={() => setView('dashboard')}
+            onLogout={signOut}
+            onHome={() => setView('home')}
           />
-          <HeroSection />
+          {user && view === 'dashboard' ? <DashboardPage profile={profile} /> : <HomePage />}
         </div>
         <GlobalModal onModeChange={setActive} />
       </div>
     </ModalProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

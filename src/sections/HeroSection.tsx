@@ -7,11 +7,11 @@ export const HeroSection: React.FC = () => {
       <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/40 to-transparent" />
       <div className="relative z-10 w-full max-w-5xl px-4 sm:px-6 flex flex-col items-center">
         <div className="text-center md:text-left w-full">
-          <h1 className="text-white text-6xl md:text-8xl font-semibold leading-tight">Explore</h1>
-          <h1 className="text-hero-gradient text-transparent text-4xl md:text-7xl font-semibold mt-3 md:mt-2 drop-shadow-white drop-shadow-xl leading-tight">
+          <h1 className="text-white text-3xl sm:text-4xl md:text-8xl font-semibold leading-tight">Explore</h1>
+          <h1 className="text-hero-gradient text-transparent text-3xl sm:text-4xl md:text-7xl font-semibold mt-3 md:mt-2 drop-shadow-white drop-shadow-xl leading-tight">
             2nd District of Ilocos Sur
           </h1>
-          <p className="text-white text-base md:text-lg mt-4">
+          <p className="text-white text-sm sm:text-base md:text-lg mt-4">
             “Explore, Taste, and Enjoy the culture of every town.”
           </p>
         </div>
