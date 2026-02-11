@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { DestinationModalCard } from '../components/DestinationModalCard';
+import { DestinationTile } from '../components/DestinationTile';
 import { RatingModal } from '../components/RatingModal';
 import { supabase } from '../lib/supabaseClient';
+
+interface DestinationsPageProps {
+  onBackHome?: () => void;
+}
 
 interface DestinationItem {
   id: string;
@@ -16,22 +21,9 @@ interface DestinationItem {
   postedByImageUrl?: string | null;
 }
 
-interface TopDestinationsSectionProps {
-  onViewMore?: () => void;
-}
-
-export const TopDestinationsSection: React.FC<TopDestinationsSectionProps> = ({ onViewMore }) => {
+export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome }) => {
   const [destinations, setDestinations] = useState<DestinationItem[]>([]);
-  const [activeDestination, setActiveDestination] = useState<{
-    name: string;
-    imageUrl: string;
-    imageUrls?: string[];
-    description?: string | null;
-    ratingAvg?: number;
-    ratingCount?: number;
-    postedByName?: string;
-    postedByImageUrl?: string | null;
-  } | null>(null);
+  const [activeDestination, setActiveDestination] = useState<DestinationItem | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
@@ -104,20 +96,7 @@ export const TopDestinationsSection: React.FC<TopDestinationsSectionProps> = ({ 
           } as DestinationItem;
         });
 
-        const sorted = [...mapped].sort((a, b) => {
-          const aRated = typeof a.ratingAvg === 'number';
-          const bRated = typeof b.ratingAvg === 'number';
-          if (aRated && bRated) {
-            return (b.ratingAvg ?? 0) - (a.ratingAvg ?? 0);
-          }
-          if (aRated) return -1;
-          if (bRated) return 1;
-          const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return bDate - aDate;
-        });
-
-        setDestinations(sorted.slice(0, 10));
+        setDestinations(mapped);
       } catch (error) {
         console.error('Failed to load destinations:', error);
       }
@@ -129,56 +108,42 @@ export const TopDestinationsSection: React.FC<TopDestinationsSectionProps> = ({ 
   const visibleDestinations = useMemo(() => destinations.filter((item) => item.imageUrl), [destinations]);
 
   return (
-    <section className="mt-12">
-      <div className="text-center max-w-2xl mx-auto">
-        <h2 className="text-3xl md:text-5xl font-extrabold">Top Destinations</h2>
-        <p className="mt-3 text-sm text-white/70">
-          "Discover the heart of Ilocos Sur — where culture, nature, and history meet."
-        </p>
-      </div>
+    <main className="min-h-screen bg-slate-950 text-white pt-24 pb-12 px-4 sm:px-6 lg:px-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">ILOCOS SUR</p>
+            <h1 className="mt-2 text-3xl sm:text-4xl font-semibold">Destinations</h1>
+            <p className="mt-2 text-sm text-white/70">
+              Explore every destination shared by the community.
+            </p>
+          </div>
+          {onBackHome && (
+            <button
+              type="button"
+              onClick={onBackHome}
+              className="self-start sm:self-auto rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+            >
+              Back to home
+            </button>
+          )}
+        </div>
 
-      <div className="mt-8">
-        <div className="overflow-x-auto hide-scrollbar">
-          <div className="flex gap-5 pr-[12.5%] pl-[12.5%] -ml-[12.5%]">
+        <section className="mt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {visibleDestinations.map((destination) => (
-              <button
+              <DestinationTile
                 key={destination.id}
-                type="button"
-                onClick={() =>
-                  setActiveDestination({
-                    name: destination.name,
-                    imageUrl: destination.imageUrl ?? '',
-                    imageUrls: destination.imageUrls,
-                    description: destination.description,
-                    ratingAvg: destination.ratingAvg,
-                    ratingCount: destination.ratingCount,
-                    postedByName: destination.postedByName,
-                    postedByImageUrl: destination.postedByImageUrl,
-                  })}
-                className="relative min-w-[60%] sm:min-w-[40%] lg:min-w-[35%] aspect-square overflow-hidden border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
-              >
-                <img
-                  src={destination.imageUrl ?? ''}
-                  alt={destination.name}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4">
-                  <p className="text-sm sm:text-base font-semibold text-white">{destination.name}</p>
-                </div>
-              </button>
+                title={destination.name}
+                description={destination.description ?? 'A featured destination from Ilocos Sur.'}
+                imageUrl={destination.imageUrl ?? ''}
+                ratingAvg={destination.ratingAvg}
+                ratingCount={destination.ratingCount}
+                onClick={() => setActiveDestination(destination)}
+              />
             ))}
           </div>
-        </div>
-        <div className="mt-6 flex flex-col items-center gap-2 text-sm md:text-base text-white/80">
-          <p>Want to see more destinations?</p>
-          <button
-            type="button"
-            onClick={onViewMore}
-            className="text-white underline underline-offset-4 hover:text-white/90"
-          >
-            click here to view more
-          </button>
-        </div>
+        </section>
       </div>
 
       {activeDestination && (
@@ -191,16 +156,16 @@ export const TopDestinationsSection: React.FC<TopDestinationsSectionProps> = ({ 
             className="max-w-5xl w-full"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="top-destination-modal"
+            aria-labelledby="destinations-modal"
             onClick={(event) => event.stopPropagation()}
           >
             <DestinationModalCard
               title={activeDestination.name}
               description={activeDestination.description || 'A featured destination from Ilocos Sur.'}
-              imageUrl={activeDestination.imageUrl}
+              imageUrl={activeDestination.imageUrl ?? ''}
               imageUrls={activeDestination.imageUrls}
-              meta="Featured destination"
-              postedBy={activeDestination.postedByName ?? 'Tourism Office'}
+              meta="Uploaded destination"
+              postedBy={activeDestination.postedByName ?? 'Community'}
               postedByImageUrl={activeDestination.postedByImageUrl}
               ratingAvg={activeDestination.ratingAvg ?? 4.7}
               ratingCount={activeDestination.ratingCount ?? 128}
@@ -216,6 +181,6 @@ export const TopDestinationsSection: React.FC<TopDestinationsSectionProps> = ({ 
         onClose={() => setRatingTarget(null)}
         onSubmit={() => setRatingTarget(null)}
       />
-    </section>
+    </main>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { DestinationCard } from '../components/DestinationCard';
+import { DestinationModalCard } from '../components/DestinationModalCard';
 import { supabase } from '../lib/supabaseClient';
 
 interface DestinationSectionProps {
@@ -15,6 +15,8 @@ interface DestinationItem {
   createdAt: string | null;
   ratingAvg?: number;
   ratingCount?: number;
+  postedBy: string;
+  postedByImageUrl?: string | null;
 }
 
 export const DestinationSection: React.FC<DestinationSectionProps> = ({ onRate, userId }) => {
@@ -25,7 +27,7 @@ export const DestinationSection: React.FC<DestinationSectionProps> = ({ onRate, 
       try {
         let query = supabase
           .from('destinations')
-          .select('id, destination_name, description, image_url, image_urls, created_at')
+          .select('id, destination_name, description, image_url, image_urls, created_at, user_id')
           .order('created_at', { ascending: false });
 
         if (userId) {
@@ -37,7 +39,7 @@ export const DestinationSection: React.FC<DestinationSectionProps> = ({ onRate, 
         if (destinationError && userId && destinationError.message.toLowerCase().includes('user_id')) {
           const retry = await supabase
             .from('destinations')
-            .select('id, destination_name, description, image_url, image_urls, created_at')
+            .select('id, destination_name, description, image_url, image_urls, created_at, user_id')
             .order('created_at', { ascending: false });
           destinationRows = retry.data ?? [];
           destinationError = retry.error ?? null;
@@ -64,10 +66,33 @@ export const DestinationSection: React.FC<DestinationSectionProps> = ({ onRate, 
           });
         });
 
+        const userIds = Array.from(
+          new Set((destinationRows ?? []).map((row) => row.user_id).filter(Boolean)),
+        ) as string[];
+
+        const profilesById = new Map<string, { full_name?: string | null; img_url?: string | null }>();
+        if (userIds.length > 0) {
+          const { data: profileRows, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, full_name, img_url')
+            .in('id', userIds);
+
+          if (profileError) {
+            throw profileError;
+          }
+
+          (profileRows ?? []).forEach((profile) => {
+            profilesById.set(profile.id, profile);
+          });
+        }
+
         const mapped = (destinationRows ?? []).map((row) => {
           const rating = ratingMap.get(row.id);
           const ratingAvg = rating && rating.count > 0 ? rating.total / rating.count : undefined;
-          const imageUrls = (row as { image_urls?: string[] }).image_urls ?? [];
+          const typedRow = row as { image_urls?: string[]; user_id?: string | null };
+          const imageUrls = typedRow.image_urls ?? [];
+          const profile = typedRow.user_id ? profilesById.get(typedRow.user_id) : undefined;
+          const postedBy = profile?.full_name || 'Traveler';
           return {
             id: row.id,
             name: row.destination_name,
@@ -77,6 +102,8 @@ export const DestinationSection: React.FC<DestinationSectionProps> = ({ onRate, 
             createdAt: row.created_at ?? null,
             ratingAvg,
             ratingCount: rating?.count,
+            postedBy,
+            postedByImageUrl: profile?.img_url ?? null,
           } as DestinationItem;
         });
 
@@ -101,14 +128,15 @@ export const DestinationSection: React.FC<DestinationSectionProps> = ({ onRate, 
       </div>
       <div className="flex flex-col gap-4">
         {visibleDestinations.map((destination) => (
-          <DestinationCard
+          <DestinationModalCard
             key={destination.id}
             title={destination.name}
             meta="Uploaded destination"
             description={destination.description ?? ''}
             imageUrl={destination.imageUrl ?? ''}
             imageUrls={destination.imageUrls}
-            postedBy="You"
+            postedBy={destination.postedBy}
+            postedByImageUrl={destination.postedByImageUrl}
             ratingAvg={destination.ratingAvg}
             ratingCount={destination.ratingCount}
             onRate={onRate ? () => onRate(destination.name) : undefined}

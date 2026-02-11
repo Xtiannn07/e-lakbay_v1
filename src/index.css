@@ -80,6 +80,49 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+  .municipalities-marquee {
+    position: relative;
+    overflow: hidden;
+  }
+  .municipalities-track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+    animation: municipalities-scroll 22s linear infinite;
+  }
+  .municipalities-marquee:hover .municipalities-track {
+    animation-play-state: paused;
+  }
+  .municipalities-fade {
+    position: relative;
+  }
+  .municipalities-fade::before,
+  .municipalities-fade::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 80px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .municipalities-fade::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(2, 6, 23, 0.98), rgba(2, 6, 23, 0));
+  }
+  .municipalities-fade::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(2, 6, 23, 0.98), rgba(2, 6, 23, 0));
+  }
+}
+
+@keyframes municipalities-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 

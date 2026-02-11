@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { HeroSection } from '../sections/HeroSection';
+import { MunicipalitiesSection } from '../sections/MunicipalitiesSection';
 import { TopDestinationsSection } from '../sections/TopDestinationsSection';
 import { ProductCard } from '../components/ProductCard';
 import { RatingModal } from '../components/RatingModal';
@@ -15,7 +16,12 @@ interface ProductItem {
   ratingCount?: number;
 }
 
-export const HomePage: React.FC = () => {
+interface HomePageProps {
+  onViewDestinations?: () => void;
+  onViewProfile?: (profileId: string) => void;
+}
+
+export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewProfile }) => {
   const [localProducts, setLocalProducts] = useState<ProductItem[]>([]);
   const [activeProduct, setActiveProduct] = useState<{
     name: string;
@@ -99,7 +105,8 @@ export const HomePage: React.FC = () => {
       <HeroSection />
       <main className="bg-slate-950 text-white px-4 sm:px-6 lg:px-10 pb-12">
         <div className="max-w-7xl mx-auto">
-          <TopDestinationsSection />
+          <MunicipalitiesSection onSelectProfile={onViewProfile} />
+          <TopDestinationsSection onViewMore={onViewDestinations} />
           <section className="mt-12">
             <div className="text-center max-w-2xl mx-auto">
               <h1 className="text-3xl font-semibold">Local Products</h1>
