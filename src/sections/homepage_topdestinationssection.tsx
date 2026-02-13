@@ -18,14 +18,17 @@ interface DestinationItem {
   ratingCount?: number;
   postedByName?: string;
   postedByImageUrl?: string | null;
+  postedById?: string | null;
 }
 
 interface HomepageTopDestinationsSectionProps {
   onViewMore?: () => void;
+  onViewProfile?: (profileId: string) => void;
 }
 
 export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSectionProps> = ({
   onViewMore,
+  onViewProfile,
 }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -39,6 +42,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
     ratingCount?: number;
     postedByName?: string;
     postedByImageUrl?: string | null;
+    postedById?: string | null;
   } | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -121,6 +125,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
             ratingCount: rating?.count,
             postedByName,
             postedByImageUrl: profile?.img_url ?? null,
+            postedById: typedRow.user_id ?? null,
           } as DestinationItem;
         });
 
@@ -183,6 +188,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                       ratingCount: destination.ratingCount,
                       postedByName: destination.postedByName,
                       postedByImageUrl: destination.postedByImageUrl,
+                      postedById: destination.postedById,
                     })}
                   className="relative min-w-[60%] sm:min-w-[40%] lg:min-w-[35%] aspect-square overflow-hidden border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
                 >
@@ -232,8 +238,10 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
               meta="Featured destination"
               postedBy={activeDestination.postedByName ?? 'Tourism Office'}
               postedByImageUrl={activeDestination.postedByImageUrl}
+              postedById={activeDestination.postedById}
               ratingAvg={activeDestination.ratingAvg}
               ratingCount={activeDestination.ratingCount}
+              onProfileClick={onViewProfile}
               onRate={() => {
                 if (!user) {
                   toast.error('Please sign in to rate destinations.');

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Cloud, Droplet, MapPin, Star, Sun, Wind } from 'lucide-react';
+import { Avatar } from './Avatar';
 
 interface DestinationModalCardProps {
   title: string;
@@ -9,9 +10,11 @@ interface DestinationModalCardProps {
   meta?: string;
   postedBy?: string;
   postedByImageUrl?: string | null;
+  postedById?: string | null;
   ratingAvg?: number;
   ratingCount?: number;
   onRate?: () => void;
+  onProfileClick?: (profileId: string) => void;
 }
 
 const formatRating = (ratingAvg?: number, ratingCount?: number) => {
@@ -32,9 +35,11 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   meta,
   postedBy = 'Tourism Office',
   postedByImageUrl,
+  postedById,
   ratingAvg,
   ratingCount,
   onRate,
+  onProfileClick,
 }) => {
   const images = useMemo(() => {
     if (imageUrls && imageUrls.length > 0) {
@@ -128,14 +133,23 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
     <article className="glass-secondary border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col gap-5 w-full max-h-[85vh] overflow-y-auto hide-scrollbar md:max-h-none md:overflow-visible">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="flex items-center gap-2 text-xs sm:text-sm text-white/70">
-          <span className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-[10px] sm:text-xs font-semibold overflow-hidden">
-            {postedByImageUrl ? (
-              <img src={postedByImageUrl} alt={postedBy} className="h-full w-full object-cover" />
-            ) : (
-              postedBy.charAt(0).toUpperCase()
-            )}
-          </span>
-          <span>{postedBy}</span>
+          <Avatar
+            name={postedBy}
+            imageUrl={postedByImageUrl}
+            sizeClassName="h-6 w-6 sm:h-7 sm:w-7"
+            onClick={postedById && onProfileClick ? () => onProfileClick(postedById) : undefined}
+          />
+          {postedById && onProfileClick ? (
+            <button
+              type="button"
+              onClick={() => onProfileClick(postedById)}
+              className="hover:underline hover:underline-offset-4"
+            >
+              {postedBy}
+            </button>
+          ) : (
+            <span>{postedBy}</span>
+          )}
         </div>
         {meta && <span className="text-[10px] sm:text-xs text-white/50">{meta}</span>}
       </header>

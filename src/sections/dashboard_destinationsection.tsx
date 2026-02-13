@@ -20,6 +20,7 @@ interface DestinationItem {
   ratingCount?: number;
   postedBy: string;
   postedByImageUrl?: string | null;
+  postedById?: string | null;
 }
 
 export const DashboardDestinationSection: React.FC<DashboardDestinationSectionProps> = ({ onRate, userId }) => {
@@ -110,6 +111,7 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
             ratingCount: rating?.count,
             postedBy,
             postedByImageUrl: profile?.img_url ?? null,
+            postedById: typedRow.user_id ?? null,
           } as DestinationItem;
         });
       } catch (error) {
@@ -149,6 +151,7 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
               imageUrls={destination.imageUrls}
               postedBy={destination.postedBy}
               postedByImageUrl={destination.postedByImageUrl}
+              postedById={destination.postedById}
               ratingAvg={destination.ratingAvg}
               ratingCount={destination.ratingCount}
               onRate={onRate ? () => onRate(destination.name) : undefined}

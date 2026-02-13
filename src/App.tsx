@@ -70,7 +70,13 @@ const AppContent: React.FC = () => {
               onBackHome={() => setView('home')}
             />
           ) : view === 'destinations' ? (
-            <DestinationsPage onBackHome={() => setView('home')} />
+            <DestinationsPage
+              onBackHome={() => setView('home')}
+              onViewProfile={(profileId) => {
+                setSelectedProfileId(profileId);
+                setView('profile');
+              }}
+            />
           ) : (
             <HomePage
               onViewDestinations={() => setView('destinations')}

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { MapPin, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
+import { Avatar } from './Avatar';
 
 interface ProductModalProps {
   open: boolean;
@@ -13,11 +14,19 @@ interface ProductModalProps {
     ratingCount?: number;
     uploaderName?: string;
     uploaderImageUrl?: string | null;
+    uploaderId?: string | null;
   } | null;
   onRate?: () => void;
+  onProfileClick?: (profileId: string) => void;
 }
 
-export const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, product, onRate }) => {
+export const ProductModal: React.FC<ProductModalProps> = ({
+  open,
+  onClose,
+  product,
+  onRate,
+  onProfileClick,
+}) => {
   if (!open || !product) return null;
 
   const images = useMemo(() => {
@@ -198,10 +207,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({ open, onClose, produ
                     {product.name}
                   </h2>
                   {product.uploaderName && (
-                    <p className="mt-1 flex items-center gap-1 text-xs sm:text-sm text-white/60">
-                      <MapPin className="h-3.5 w-3.5 text-white/50" />
-                      <span>{product.uploaderName}</span>
-                    </p>
+                    <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-white/60">
+                      <Avatar
+                        name={product.uploaderName}
+                        imageUrl={product.uploaderImageUrl}
+                        sizeClassName="h-7 w-7"
+                        onClick={
+                          product.uploaderId && onProfileClick
+                            ? () => onProfileClick(product.uploaderId as string)
+                            : undefined
+                        }
+                      />
+                      {product.uploaderId && onProfileClick ? (
+                        <button
+                          type="button"
+                          onClick={() => onProfileClick(product.uploaderId as string)}
+                          className="hover:underline hover:underline-offset-4"
+                        >
+                          {product.uploaderName}
+                        </button>
+                      ) : (
+                        <span>{product.uploaderName}</span>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-yellow-300">

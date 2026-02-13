@@ -17,6 +17,7 @@ import {
 
 interface DestinationsPageProps {
   onBackHome?: () => void;
+  onViewProfile?: (profileId: string) => void;
 }
 
 interface DestinationItem {
@@ -30,9 +31,10 @@ interface DestinationItem {
   ratingCount?: number;
   postedByName?: string;
   postedByImageUrl?: string | null;
+  postedById?: string | null;
 }
 
-export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome }) => {
+export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, onViewProfile }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
@@ -108,6 +110,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome }
             ratingCount: rating?.count,
             postedByName,
             postedByImageUrl: profile?.img_url ?? null,
+            postedById: typedRow.user_id ?? null,
           } as DestinationItem;
         });
       } catch (error) {
@@ -175,9 +178,11 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome }
                   meta="Uploaded destination"
                   postedBy={destination.postedByName ?? 'Community'}
                   postedByImageUrl={destination.postedByImageUrl}
+                  postedById={destination.postedById}
                   ratingAvg={destination.ratingAvg}
                   ratingCount={destination.ratingCount}
                   enableModal
+                  onProfileClick={onViewProfile}
                   onRate={() => {
                     if (!user) {
                       toast.error('Please sign in to rate destinations.');

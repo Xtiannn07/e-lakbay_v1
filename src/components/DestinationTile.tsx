@@ -10,11 +10,13 @@ interface DestinationTileProps {
   meta?: string;
   postedBy?: string;
   postedByImageUrl?: string | null;
+  postedById?: string | null;
   ratingAvg?: number;
   ratingCount?: number;
   enableModal?: boolean;
   onRate?: () => void;
   onClick?: () => void;
+  onProfileClick?: (profileId: string) => void;
 }
 
 const formatRating = (ratingAvg?: number, ratingCount?: number) => {
@@ -35,11 +37,13 @@ export const DestinationTile: React.FC<DestinationTileProps> = ({
   meta,
   postedBy,
   postedByImageUrl,
+  postedById,
   ratingAvg,
   ratingCount,
   enableModal = false,
   onRate,
   onClick,
+  onProfileClick,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -107,9 +111,11 @@ export const DestinationTile: React.FC<DestinationTileProps> = ({
                 meta={meta}
                 postedBy={postedBy}
                 postedByImageUrl={postedByImageUrl}
+                postedById={postedById}
                 ratingAvg={ratingAvg}
                 ratingCount={ratingCount}
                 onRate={onRate}
+                onProfileClick={onProfileClick}
               />
             </div>
           </div>

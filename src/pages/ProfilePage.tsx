@@ -197,6 +197,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                   meta="Uploaded destination"
                   postedBy={displayName}
                   postedByImageUrl={profile?.imageUrl ?? null}
+                  postedById={profileId}
                   ratingAvg={destination.ratingAvg}
                   ratingCount={destination.ratingCount}
                   enableModal

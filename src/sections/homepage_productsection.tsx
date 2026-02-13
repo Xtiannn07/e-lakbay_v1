@@ -4,6 +4,7 @@ import { Star } from 'lucide-react';
 import { ProductTileSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
 import { RatingModal } from '../components/RatingModal';
 import { ProductModal } from '../components/ProductModal';
+import { Avatar } from '../components/Avatar';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -19,9 +20,14 @@ interface ProductItem {
   ratingCount?: number;
   uploaderName: string;
   uploaderImageUrl?: string | null;
+  uploaderId?: string | null;
 }
 
-export const HomepageProductSection: React.FC = () => {
+interface HomepageProductSectionProps {
+  onViewProfile?: (profileId: string) => void;
+}
+
+export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({ onViewProfile }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeProduct, setActiveProduct] = useState<{
@@ -34,6 +40,7 @@ export const HomepageProductSection: React.FC = () => {
     ratingCount?: number;
     uploaderName?: string;
     uploaderImageUrl?: string | null;
+    uploaderId?: string | null;
   } | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{
     type: 'Product' | 'Destination';
@@ -116,6 +123,7 @@ export const HomepageProductSection: React.FC = () => {
             ratingCount: rating?.count,
             uploaderName,
             uploaderImageUrl: profile?.img_url ?? null,
+            uploaderId: typedRow.user_id ?? null,
           } as ProductItem;
         });
 
@@ -187,6 +195,7 @@ export const HomepageProductSection: React.FC = () => {
                     ratingCount: product.ratingCount,
                     uploaderName: product.uploaderName,
                     uploaderImageUrl: product.uploaderImageUrl,
+                    uploaderId: product.uploaderId,
                   })}
                 className="rounded-xl border border-white/10 bg-white/5 p-1 md:p-2 text-left focus:outline-none focus:ring-2 focus:ring-white/40"
               >
@@ -196,16 +205,21 @@ export const HomepageProductSection: React.FC = () => {
                     alt={product.name}
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute top-2 right-2 h-9 w-9 rounded-full border border-white/20 bg-black/40 overflow-hidden flex items-center justify-center text-[10px] font-semibold">
-                    {product.uploaderImageUrl ? (
-                      <img
-                        src={product.uploaderImageUrl}
-                        alt={product.uploaderName}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      product.uploaderName.charAt(0).toUpperCase()
-                    )}
+                  <div className="absolute top-2 right-2">
+                    <Avatar
+                      name={product.uploaderName}
+                      imageUrl={product.uploaderImageUrl}
+                      sizeClassName="h-9 w-9"
+                      className="bg-black/40"
+                      onClick={
+                        product.uploaderId && onViewProfile
+                          ? (event) => {
+                              event.stopPropagation();
+                              onViewProfile(product.uploaderId as string);
+                            }
+                          : undefined
+                      }
+                    />
                   </div>
                   <div className="absolute inset-x-0 bottom-0 bg-black/55 backdrop-blur-sm p-2">
                     <p className="text-sm font-semibold text-white line-clamp-2">
@@ -229,6 +243,7 @@ export const HomepageProductSection: React.FC = () => {
         open={Boolean(activeProduct)}
         product={activeProduct}
         onClose={() => setActiveProduct(null)}
+        onProfileClick={onViewProfile}
         onRate={() => {
           if (!activeProduct) return;
           if (!user) {

@@ -16,8 +16,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewPr
       <main className="bg-slate-950 text-white px-4 sm:px-6 lg:px-10 pb-12">
         <div className="max-w-7xl mx-auto">
           <HomepageMunicipalitiesSection onSelectProfile={onViewProfile} />
-          <HomepageTopDestinationsSection onViewMore={onViewDestinations} />
-          <HomepageProductSection />
+          <HomepageTopDestinationsSection onViewMore={onViewDestinations} onViewProfile={onViewProfile} />
+          <HomepageProductSection onViewProfile={onViewProfile} />
         </div>
       </main>
     </>
