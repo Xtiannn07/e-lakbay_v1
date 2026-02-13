@@ -11,6 +11,7 @@ interface DashboardSidebarProps {
   fullName?: string | null;
   onOpenProductUpload: () => void;
   onOpenDestinationUpload: () => void;
+  onJumpToSection?: (sectionId: string) => void;
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
@@ -21,7 +22,14 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   fullName,
   onOpenProductUpload,
   onOpenDestinationUpload,
+  onJumpToSection,
 }) => {
+    const handleSectionJump = (sectionId: string) => {
+      if (!onJumpToSection) return;
+      setIsSidebarOpen(false);
+      onJumpToSection(sectionId);
+    };
+
   const { refreshProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [nameInput, setNameInput] = useState(fullName || displayName);
@@ -273,24 +281,27 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
         <p className="text-xs uppercase tracking-[0.2em] text-white/60 mt-6">Dashboard</p>
         <nav className="mt-4 flex flex-col gap-2 text-sm">
-          <a href="#analytics-overview" className="text-white/80 hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={() => handleSectionJump('analytics-overview')}
+            className="text-left text-white/80 hover:text-white transition-colors"
+          >
             Overview
-          </a>
-          <a href="#key-metrics" className="text-white/80 hover:text-white transition-colors">
-            Key Metrics
-          </a>
-          <a href="#visitor-trends" className="text-white/80 hover:text-white transition-colors">
-            Visitor Trends
-          </a>
-          <a href="#top-destinations" className="text-white/80 hover:text-white transition-colors">
-            Top Destinations
-          </a>
-          <a href="#products" className="text-white/80 hover:text-white transition-colors">
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSectionJump('products')}
+            className="text-left text-white/80 hover:text-white transition-colors"
+          >
             Products
-          </a>
-          <a href="#destinations" className="text-white/80 hover:text-white transition-colors">
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSectionJump('destinations')}
+            className="text-left text-white/80 hover:text-white transition-colors"
+          >
             Destinations
-          </a>
+          </button>
         </nav>
 
         <div className="mt-6 border-t border-white/10 pt-4 flex flex-col gap-3">

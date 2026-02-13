@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { DestinationModalCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
 import { DestinationModalCard } from '../components/DestinationModalCard';
@@ -24,6 +25,15 @@ interface DestinationItem {
 }
 
 export const DashboardDestinationSection: React.FC<DashboardDestinationSectionProps> = ({ onRate, userId }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const getItemMotion = (index: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 10 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
+        };
   const {
     data: destinations = [],
     isPending: isDestinationsPending,
@@ -141,21 +151,22 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
             render={(index) => <DestinationModalCardSkeleton key={`destination-card-skeleton-${index}`} />}
           />
         ) : (
-          visibleDestinations.map((destination) => (
-            <DestinationModalCard
-              key={destination.id}
-              title={destination.name}
-              meta="Uploaded destination"
-              description={destination.description ?? ''}
-              imageUrl={destination.imageUrl ?? ''}
-              imageUrls={destination.imageUrls}
-              postedBy={destination.postedBy}
-              postedByImageUrl={destination.postedByImageUrl}
-              postedById={destination.postedById}
-              ratingAvg={destination.ratingAvg}
-              ratingCount={destination.ratingCount}
-              onRate={onRate ? () => onRate(destination.name) : undefined}
-            />
+          visibleDestinations.map((destination, index) => (
+            <motion.div key={destination.id} {...getItemMotion(index)}>
+              <DestinationModalCard
+                title={destination.name}
+                meta="Uploaded destination"
+                description={destination.description ?? ''}
+                imageUrl={destination.imageUrl ?? ''}
+                imageUrls={destination.imageUrls}
+                postedBy={destination.postedBy}
+                postedByImageUrl={destination.postedByImageUrl}
+                postedById={destination.postedById}
+                ratingAvg={destination.ratingAvg}
+                ratingCount={destination.ratingCount}
+                onRate={onRate ? () => onRate(destination.name) : undefined}
+              />
+            </motion.div>
           ))
         )}
       </div>

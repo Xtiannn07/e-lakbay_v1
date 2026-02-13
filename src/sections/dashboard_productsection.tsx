@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { ProductCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
 import { ProductCard } from '../components/ProductCard';
@@ -21,6 +22,15 @@ interface ProductItem {
 }
 
 export const DashboardProductSection: React.FC<DashboardProductSectionProps> = ({ onRate, userId }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const getItemMotion = (index: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 10 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
+        };
   const {
     data: products = [],
     isPending: isProductsPending,
@@ -134,17 +144,18 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
             render={(index) => <ProductCardSkeleton key={`product-card-skeleton-${index}`} />}
           />
         ) : (
-          visibleProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              title={product.name}
-              meta={product.uploaderName}
-              description={product.description ?? ''}
-              imageUrl={product.imageUrl ?? ''}
-              ratingAvg={product.ratingAvg}
-              ratingCount={product.ratingCount}
-              onRate={onRate ? () => onRate(product.name) : undefined}
-            />
+          visibleProducts.map((product, index) => (
+            <motion.div key={product.id} {...getItemMotion(index)}>
+              <ProductCard
+                title={product.name}
+                meta={product.uploaderName}
+                description={product.description ?? ''}
+                imageUrl={product.imageUrl ?? ''}
+                ratingAvg={product.ratingAvg}
+                ratingCount={product.ratingCount}
+                onRate={onRate ? () => onRate(product.name) : undefined}
+              />
+            </motion.div>
           ))
         )}
       </div>

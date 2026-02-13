@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavBar } from './components/NavBar';
 import { ModalProvider } from './components/ModalContext';
 import { GlobalModal } from './components/GlobalModal';
@@ -25,6 +25,9 @@ const AppContent: React.FC = () => {
     if (typeof window === 'undefined') return null;
     return window.localStorage.getItem('elakbay:profileId');
   });
+  const lastScrollKeyRef = useRef<string | null>(null);
+  const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
+  const scrollAttemptRef = useRef(0);
 
   useEffect(() => {
     if (!user && view === 'dashboard') {
@@ -49,6 +52,49 @@ const AppContent: React.FC = () => {
     }
   }, [selectedProfileId]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const nextKey = `${view}:${selectedProfileId ?? ''}`;
+    if (lastScrollKeyRef.current !== nextKey) {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      });
+      lastScrollKeyRef.current = nextKey;
+    }
+  }, [view, selectedProfileId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (view !== 'home' || !pendingScrollId) return;
+
+    const tryScroll = () => {
+      const target = document.getElementById(pendingScrollId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setPendingScrollId(null);
+        scrollAttemptRef.current = 0;
+        return;
+      }
+
+      if (scrollAttemptRef.current < 10) {
+        scrollAttemptRef.current += 1;
+        window.setTimeout(tryScroll, 120);
+      } else {
+        setPendingScrollId(null);
+        scrollAttemptRef.current = 0;
+      }
+    };
+
+    window.setTimeout(tryScroll, 0);
+  }, [view, pendingScrollId]);
+
+  const handleJumpToSection = (sectionId: string) => {
+    if (view !== 'home') {
+      setView('home');
+    }
+    setPendingScrollId(sectionId);
+  };
+
   return (
     <ModalProvider>
       <div className="min-h-screen flex flex-col">
@@ -61,6 +107,7 @@ const AppContent: React.FC = () => {
             onDashboard={() => setView('dashboard')}
             onLogout={signOut}
             onHome={() => setView('home')}
+            onJumpToSection={handleJumpToSection}
           />
           {user && view === 'dashboard' ? (
             <DashboardPage profile={profile} />

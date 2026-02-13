@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DestinationTileSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
 import { DestinationTile } from '../components/DestinationTile';
@@ -35,6 +36,15 @@ interface DestinationItem {
 }
 
 export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, onViewProfile }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const getItemMotion = (index: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
+        };
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
@@ -168,29 +178,30 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
                 render={(index) => <DestinationTileSkeleton key={`destination-skeleton-${index}`} />}
               />
             ) : (
-              visibleDestinations.map((destination) => (
-                <DestinationTile
-                  key={destination.id}
-                  title={destination.name}
-                  description={destination.description ?? 'A featured destination from Ilocos Sur.'}
-                  imageUrl={destination.imageUrl ?? ''}
-                  imageUrls={destination.imageUrls}
-                  meta="Uploaded destination"
-                  postedBy={destination.postedByName ?? 'Community'}
-                  postedByImageUrl={destination.postedByImageUrl}
-                  postedById={destination.postedById}
-                  ratingAvg={destination.ratingAvg}
-                  ratingCount={destination.ratingCount}
-                  enableModal
-                  onProfileClick={onViewProfile}
-                  onRate={() => {
-                    if (!user) {
-                      toast.error('Please sign in to rate destinations.');
-                      return;
-                    }
-                    setRatingTarget({ id: destination.id, name: destination.name });
-                  }}
-                />
+              visibleDestinations.map((destination, index) => (
+                <motion.div key={destination.id} {...getItemMotion(index)}>
+                  <DestinationTile
+                    title={destination.name}
+                    description={destination.description ?? 'A featured destination from Ilocos Sur.'}
+                    imageUrl={destination.imageUrl ?? ''}
+                    imageUrls={destination.imageUrls}
+                    meta="Uploaded destination"
+                    postedBy={destination.postedByName ?? 'Community'}
+                    postedByImageUrl={destination.postedByImageUrl}
+                    postedById={destination.postedById}
+                    ratingAvg={destination.ratingAvg}
+                    ratingCount={destination.ratingCount}
+                    enableModal
+                    onProfileClick={onViewProfile}
+                    onRate={() => {
+                      if (!user) {
+                        toast.error('Please sign in to rate destinations.');
+                        return;
+                      }
+                      setRatingTarget({ id: destination.id, name: destination.name });
+                    }}
+                  />
+                </motion.div>
               ))
             )}
           </div>

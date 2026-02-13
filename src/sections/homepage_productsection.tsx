@@ -166,7 +166,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({ 
 
   return (
     <>
-      <section className="mt-12">
+      <section id="products" className="mt-12">
         <div className="text-center max-w-2xl mx-auto">
           <h1 className="text-3xl font-semibold">Local Products</h1>
           <p className="mt-3 text-sm text-white/70">

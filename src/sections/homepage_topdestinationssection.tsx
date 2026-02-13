@@ -156,7 +156,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
     isDestinationsPending || (isDestinationsFetching && destinations.length === 0);
 
   return (
-    <section className="mt-12">
+    <section id="top-destinations" className="mt-12">
       <div className="text-center max-w-2xl mx-auto">
         <h2 className="text-3xl md:text-5xl font-extrabold">Top Destinations</h2>
         <p className="mt-3 text-sm text-white/70">
@@ -190,7 +190,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                       postedByImageUrl: destination.postedByImageUrl,
                       postedById: destination.postedById,
                     })}
-                  className="relative min-w-[60%] sm:min-w-[40%] lg:min-w-[35%] aspect-square overflow-hidden border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  className="relative min-w-[90%] sm:min-w-[60%] lg:min-w-[35%] aspect-square overflow-hidden border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
                 >
                   <img
                     src={destination.imageUrl ?? ''}

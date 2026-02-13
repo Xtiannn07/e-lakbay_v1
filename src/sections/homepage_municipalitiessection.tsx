@@ -59,7 +59,7 @@ export const HomepageMunicipalitiesSection: React.FC<HomepageMunicipalitiesSecti
   }
 
   return (
-    <section className=" text-white -mx-4 sm:-mx-6 lg:-mx-10">
+    <section id="municipalities" className=" text-white py-5 md:py-10 -mx-4 sm:-mx-6 lg:-mx-10">
       <div className="overflow-hidden municipalities-fade">
         <div className="municipalities-marquee">
           <div className="municipalities-track px-1 sm:px-2">
@@ -76,15 +76,15 @@ export const HomepageMunicipalitiesSection: React.FC<HomepageMunicipalitiesSecti
                   onClick={() => onSelectProfile?.(profile.id)}
                   className="flex flex-col items-center gap-1 text-center min-w-[72px]"
                 >
-                  <div className="h-14 w-14 rounded-full border border-white/15 bg-white/10 overflow-hidden flex items-center justify-center text-xs font-semibold">
+                  <div className="h-12 md:h-28 w-12 md:w-28 rounded-full border border-white/15 bg-white/10 overflow-hidden flex items-center justify-center text-sm md:text-3xl font-extrabold">
                     {profile.imageUrl ? (
                       <img src={profile.imageUrl} alt={profile.name} className="h-full w-full object-cover" />
                     ) : (
                       profile.name.charAt(0).toUpperCase()
                     )}
                   </div>
-                  <span className="text-[10px] sm:text-xs text-white/80 leading-tight line-clamp-2">
-                    {profile.name}
+                  <span className="text-[10px] sm:text-xs text-white/80 leading-tight line-clamp-2 md:p-1">
+                    {profile.name.toUpperCase()}
                   </span>
                 </button>
               ))

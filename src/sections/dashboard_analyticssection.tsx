@@ -1,10 +1,28 @@
 import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface DashboardAnalyticsSectionProps {
   displayName: string;
 }
 
 export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps> = ({ displayName }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const getItemMotion = (index: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 10 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.05 },
+        };
+  const getPanelMotion = (delay: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.4, ease: 'easeOut', delay },
+        };
   return (
     <section id="analytics-overview">
       <div className="flex flex-col gap-2 mb-8">
@@ -13,22 +31,32 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
       </div>
 
       <div id="key-metrics" className="grid gap-4 sm:grid-cols-2">
-        {[
-          { label: 'Monthly Visitors', value: '12.4k', delta: '+8.2%' },
-          { label: 'Engagement', value: '68%', delta: '+2.9%' },
-        ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl bg-white/5 border border-white/10 p-4">
-            <p className="text-sm text-white/60">{stat.label}</p>
-            <div className="mt-2 flex items-end justify-between">
-              <span className="text-2xl font-semibold">{stat.value}</span>
-              <span className="text-sm text-emerald-300">{stat.delta}</span>
-            </div>
-          </div>
-        ))}
+        {
+          [
+            { label: 'Monthly Visitors', value: '12.4k', delta: '+8.2%' },
+            { label: 'Engagement', value: '68%', delta: '+2.9%' },
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="rounded-2xl bg-white/5 border border-white/10 p-4"
+              {...getItemMotion(index)}
+            >
+              <p className="text-sm text-white/60">{stat.label}</p>
+              <div className="mt-2 flex items-end justify-between">
+                <span className="text-2xl font-semibold">{stat.value}</span>
+                <span className="text-sm text-emerald-300">{stat.delta}</span>
+              </div>
+            </motion.div>
+          ))
+        }
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <div id="visitor-trends" className="lg:col-span-2 rounded-2xl bg-white/5 border border-white/10 p-6">
+        <motion.div
+          id="visitor-trends"
+          className="lg:col-span-2 rounded-2xl bg-white/5 border border-white/10 p-6"
+          {...getPanelMotion(0.08)}
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Visitor Trends</h2>
             <span className="text-xs text-white/60">Last 7 days</span>
@@ -44,9 +72,13 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div id="top-destinations" className="rounded-2xl bg-white/5 border border-white/10 p-6">
+        <motion.div
+          id="top-destinations"
+          className="rounded-2xl bg-white/5 border border-white/10 p-6"
+          {...getPanelMotion(0.14)}
+        >
           <h2 className="text-lg font-semibold mb-4">Top Destinations</h2>
           <ul className="space-y-3">
             {[
@@ -69,7 +101,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
               </li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -13,6 +13,7 @@ interface NavBarProps {
   onLogout: () => void;
   onDashboard: () => void;
   onHome: () => void;
+  onJumpToSection: (sectionId: string) => void;
 }
 
 export const NavBar: React.FC<NavBarProps> = ({
@@ -23,6 +24,7 @@ export const NavBar: React.FC<NavBarProps> = ({
   onLogout,
   onDashboard,
   onHome,
+  onJumpToSection,
 }) => {
   const { openModal } = useModal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,9 +47,9 @@ export const NavBar: React.FC<NavBarProps> = ({
     setIsMenuOpen(false);
   };
 
-  const handleNavItemClick = () => {
+  const handleSectionJump = (sectionId: string) => {
     setIsMenuOpen(false);
-    onHome();
+    onJumpToSection(sectionId);
   };
 
   return (
@@ -64,17 +66,17 @@ export const NavBar: React.FC<NavBarProps> = ({
       <div className="hidden md:flex items-center gap-6">
         <button
           type="button"
-          onClick={onHome}
+          onClick={() => handleSectionJump('top-destinations')}
           className="cursor-pointer hover:text-black transition-colors"
         >
           Destinations
         </button>
         <button
           type="button"
-          onClick={onHome}
+          onClick={() => handleSectionJump('products')}
           className="cursor-pointer hover:text-black transition-colors"
         >
-          Municipalities
+          Products
         </button>
         {!isAuthenticated ? (
           <>
@@ -147,14 +149,21 @@ export const NavBar: React.FC<NavBarProps> = ({
         <div className="flex flex-col gap-2 px-4 py-4 text-white">
           <button
             type="button"
-            onClick={handleNavItemClick}
+            onClick={() => handleSectionJump('top-destinations')}
             className="text-left text-sm font-medium tracking-wide hover:text-black transition-colors"
           >
             Destinations
           </button>
           <button
             type="button"
-            onClick={handleNavItemClick}
+            onClick={() => handleSectionJump('products')}
+            className="text-left text-sm font-medium tracking-wide hover:text-black transition-colors"
+          >
+            Products
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSectionJump('municipalities')}
             className="text-left text-sm font-medium tracking-wide hover:text-black transition-colors"
           >
             Municipalities

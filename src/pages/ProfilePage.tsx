@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { DestinationTileSkeleton, ProfileHeaderSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
 import { DestinationTile } from '../components/DestinationTile';
@@ -37,6 +38,15 @@ interface DestinationItem {
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const getItemMotion = (index: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
+        };
   const { data: profile, isPending: isProfilePending, isFetching: isProfileFetching } = useQuery({
     queryKey: ['profiles', profileId],
     queryFn: async () => {
@@ -187,21 +197,22 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                 render={(index) => <DestinationTileSkeleton key={`profile-destination-skeleton-${index}`} />}
               />
             ) : (
-              visibleDestinations.map((destination) => (
-                <DestinationTile
-                  key={destination.id}
-                  title={destination.name}
-                  description={destination.description ?? 'A featured destination from Ilocos Sur.'}
-                  imageUrl={destination.imageUrl ?? ''}
-                  imageUrls={destination.imageUrls}
-                  meta="Uploaded destination"
-                  postedBy={displayName}
-                  postedByImageUrl={profile?.imageUrl ?? null}
-                  postedById={profileId}
-                  ratingAvg={destination.ratingAvg}
-                  ratingCount={destination.ratingCount}
-                  enableModal
-                />
+              visibleDestinations.map((destination, index) => (
+                <motion.div key={destination.id} {...getItemMotion(index)}>
+                  <DestinationTile
+                    title={destination.name}
+                    description={destination.description ?? 'A featured destination from Ilocos Sur.'}
+                    imageUrl={destination.imageUrl ?? ''}
+                    imageUrls={destination.imageUrls}
+                    meta="Uploaded destination"
+                    postedBy={displayName}
+                    postedByImageUrl={profile?.imageUrl ?? null}
+                    postedById={profileId}
+                    ratingAvg={destination.ratingAvg}
+                    ratingCount={destination.ratingCount}
+                    enableModal
+                  />
+                </motion.div>
               ))
             )}
           </div>
