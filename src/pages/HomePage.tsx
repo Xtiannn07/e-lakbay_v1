@@ -7,10 +7,11 @@ import { HomepageProductSection } from '../sections/homepage_productsection';
 
 interface HomePageProps {
   onViewDestinations?: () => void;
+  onViewProducts?: () => void;
   onViewProfile?: (profileId: string) => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewProfile }) => {
+export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewProducts, onViewProfile }) => {
   const shouldReduceMotion = useReducedMotion();
   const sectionMotion = shouldReduceMotion
     ? { initial: false, animate: { opacity: 1 } }
@@ -31,7 +32,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewPr
             <HomepageTopDestinationsSection onViewMore={onViewDestinations} onViewProfile={onViewProfile} />
           </motion.div>
           <motion.div {...sectionMotion} transition={shouldReduceMotion ? undefined : { duration: 0.45, ease: 'easeOut', delay: 0.14 }}>
-            <HomepageProductSection onViewProfile={onViewProfile} />
+            <HomepageProductSection onViewProfile={onViewProfile} onViewProducts={onViewProducts} />
           </motion.div>
         </div>
       </main>

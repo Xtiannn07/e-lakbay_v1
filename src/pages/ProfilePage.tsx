@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
-import { DestinationTileSkeleton, ProfileHeaderSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
-import { DestinationTile } from '../components/DestinationTile';
+import React, { useMemo, useState } from 'react';
+import { motion, useReducedMotion, easeOut } from 'framer-motion';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { DestinationTileSkeleton, ProfileHeaderSkeleton, ProductCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { DestinationCard } from '../components/DestinationCard';
+import { ProductCard } from '../components/ProductCard';
+import { RatingModal } from '../components/RatingModal';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
 import {
@@ -37,15 +39,28 @@ interface DestinationItem {
   ratingCount?: number;
 }
 
+interface ProductItem {
+  id: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  ratingAvg?: number;
+  ratingCount?: number;
+}
+
 export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome }) => {
   const shouldReduceMotion = useReducedMotion();
+  const queryClient = useQueryClient();
+  const [destinationRatingTarget, setDestinationRatingTarget] = useState<{ id: string; name: string } | null>(null);
+  const [productRatingTarget, setProductRatingTarget] = useState<{ id: string; name: string } | null>(null);
+  
   const getItemMotion = (index: number) =>
     shouldReduceMotion
       ? {}
       : {
           initial: { opacity: 0, y: 12 },
           animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
+          transition: { duration: 0.35, ease: easeOut, delay: index * 0.04 },
         };
   const { data: profile, isPending: isProfilePending, isFetching: isProfileFetching } = useQuery({
     queryKey: ['profiles', profileId],
@@ -133,10 +148,68 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
     },
   });
 
+  const {
+    data: products = [],
+    isPending: isProductsPending,
+    isFetching: isProductsFetching,
+  } = useQuery({
+    queryKey: ['products', 'profile', profileId],
+    queryFn: async () => {
+      try {
+        const { data: productRows, error: productError } = await supabase
+          .from('products')
+          .select('id, product_name, description, image_url, image_urls, created_at')
+          .eq('user_id', profileId)
+          .order('created_at', { ascending: false });
+
+        if (productError) {
+          throw productError;
+        }
+
+        const { data: ratingRows, error: ratingError } = await supabase
+          .from('product_ratings')
+          .select('product_id, rating');
+
+        if (ratingError) {
+          throw ratingError;
+        }
+
+        const ratingMap = new Map<string, { total: number; count: number }>();
+        (ratingRows ?? []).forEach((row) => {
+          const current = ratingMap.get(row.product_id) ?? { total: 0, count: 0 };
+          ratingMap.set(row.product_id, {
+            total: current.total + (row.rating ?? 0),
+            count: current.count + 1,
+          });
+        });
+
+        return (productRows ?? []).map((row) => {
+          const rating = ratingMap.get(row.id);
+          const ratingAvg = rating && rating.count > 0 ? rating.total / rating.count : undefined;
+          const imageUrls = (row as { image_urls?: string[] }).image_urls ?? [];
+          return {
+            id: row.id,
+            name: row.product_name,
+            description: row.description ?? null,
+            imageUrl: imageUrls[0] ?? row.image_url ?? null,
+            ratingAvg,
+            ratingCount: rating?.count,
+          } as ProductItem;
+        });
+      } catch (fetchError) {
+        console.error('Failed to load products:', fetchError);
+        toast.error('Failed to load products.');
+        return [] as ProductItem[];
+      }
+    },
+  });
+
   const visibleDestinations = useMemo(() => destinations.filter((item) => item.imageUrl), [destinations]);
+  const visibleProducts = useMemo(() => products.filter((item) => item.imageUrl), [products]);
   const showProfileSkeleton = isProfilePending || isProfileFetching;
   const showDestinationSkeletons =
     isDestinationsPending || (isDestinationsFetching && destinations.length === 0);
+  const showProductSkeletons = isProductsPending || (isProductsFetching && products.length === 0);
   const displayName = profile?.fullName || profile?.email || 'Traveler';
 
   return (
@@ -199,18 +272,57 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
             ) : (
               visibleDestinations.map((destination, index) => (
                 <motion.div key={destination.id} {...getItemMotion(index)}>
-                  <DestinationTile
+                  <DestinationCard
                     title={destination.name}
                     description={destination.description ?? 'A featured destination from Ilocos Sur.'}
                     imageUrl={destination.imageUrl ?? ''}
                     imageUrls={destination.imageUrls}
-                    meta="Uploaded destination"
                     postedBy={displayName}
                     postedByImageUrl={profile?.imageUrl ?? null}
                     postedById={profileId}
                     ratingAvg={destination.ratingAvg}
                     ratingCount={destination.ratingCount}
+                    showDescription
                     enableModal
+                    onRate={() => {
+                      setDestinationRatingTarget({ id: destination.id, name: destination.name });
+                    }}
+                  />
+                </motion.div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="mt-12">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-semibold">Products shared</h2>
+            <span className="text-xs text-white/50">{visibleProducts.length} entries</span>
+          </div>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {showProductSkeletons ? (
+              <SkeletonList
+                count={4}
+                render={(index) => <ProductCardSkeleton key={`profile-product-skeleton-${index}`} />}
+              />
+            ) : (
+              visibleProducts.map((product, index) => (
+                <motion.div key={product.id} {...getItemMotion(index)}>
+                  <ProductCard
+                    title={product.name}
+                    meta={displayName}
+                    description={product.description ?? ''}
+                    imageUrl={product.imageUrl ?? ''}
+                    uploaderName={displayName}
+                    uploaderImageUrl={profile?.imageUrl ?? null}
+                    uploaderId={profileId}
+                    ratingAvg={product.ratingAvg}
+                    ratingCount={product.ratingCount}
+                    showDescription
+                    showMeta
+                    onRate={() => {
+                      setProductRatingTarget({ id: product.id, name: product.name });
+                    }}
                   />
                 </motion.div>
               ))
@@ -218,6 +330,62 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
           </div>
         </section>
       </div>
+
+      <RatingModal
+        open={Boolean(destinationRatingTarget)}
+        title={destinationRatingTarget ? `Rate Destination: ${destinationRatingTarget.name}` : 'Rate'}
+        onClose={() => setDestinationRatingTarget(null)}
+        onSubmit={async (rating, comment) => {
+          if (!destinationRatingTarget) return;
+          try {
+            const { error } = await supabase.from('destination_ratings').insert({
+              destination_id: destinationRatingTarget.id,
+              user_id: profileId,
+              rating,
+              comment: comment || null,
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            queryClient.invalidateQueries({ queryKey: ['destinations', 'profile', profileId] });
+            setDestinationRatingTarget(null);
+            toast.success('Destination rated successfully!');
+          } catch (error) {
+            console.error('Failed to rate destination:', error);
+            toast.error('Failed to rate destination.');
+          }
+        }}
+      />
+
+      <RatingModal
+        open={Boolean(productRatingTarget)}
+        title={productRatingTarget ? `Rate Product: ${productRatingTarget.name}` : 'Rate'}
+        onClose={() => setProductRatingTarget(null)}
+        onSubmit={async (rating, comment) => {
+          if (!productRatingTarget) return;
+          try {
+            const { error } = await supabase.from('product_ratings').insert({
+              product_id: productRatingTarget.id,
+              user_id: profileId,
+              rating,
+              comment: comment || null,
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            queryClient.invalidateQueries({ queryKey: ['products', 'profile', profileId] });
+            setProductRatingTarget(null);
+            toast.success('Product rated successfully!');
+          } catch (error) {
+            console.error('Failed to rate product:', error);
+            toast.error('Failed to rate product.');
+          }
+        }}
+      />
     </main>
   );
 };

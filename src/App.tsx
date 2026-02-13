@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './components/AuthProvider';
 import { DashboardPage } from './pages/DashboardPage';
 import { HomePage } from './pages/HomePage';
 import { DestinationsPage } from './pages/DestinationsPage';
+import { ProductsPage } from './pages/ProductsPage';
 import ProfilePage from './pages/ProfilePage';
 import { SonnerGlobal } from './components/modern-ui/sonner';
 import loadingVideo from './assets/Loading_chatbot.webm';
@@ -13,10 +14,16 @@ import loadingVideo from './assets/Loading_chatbot.webm';
 const AppContent: React.FC = () => {
   const [active, setActive] = useState<'login' | 'signup'>('login');
   const { user, profile, loading, signOut } = useAuth();
-  const [view, setView] = useState<'home' | 'dashboard' | 'destinations' | 'profile'>(() => {
+  const [view, setView] = useState<'home' | 'dashboard' | 'destinations' | 'profile' | 'products'>(() => {
     if (typeof window === 'undefined') return 'home';
     const stored = window.localStorage.getItem('elakbay:view');
-    if (stored === 'home' || stored === 'dashboard' || stored === 'destinations' || stored === 'profile') {
+    if (
+      stored === 'home' ||
+      stored === 'dashboard' ||
+      stored === 'destinations' ||
+      stored === 'profile' ||
+      stored === 'products'
+    ) {
       return stored;
     }
     return 'home';
@@ -124,9 +131,12 @@ const AppContent: React.FC = () => {
                 setView('profile');
               }}
             />
+          ) : view === 'products' ? (
+            <ProductsPage onBackHome={() => setView('home')} />
           ) : (
             <HomePage
               onViewDestinations={() => setView('destinations')}
+              onViewProducts={() => setView('products')}
               onViewProfile={(profileId) => {
                 setSelectedProfileId(profileId);
                 setView('profile');

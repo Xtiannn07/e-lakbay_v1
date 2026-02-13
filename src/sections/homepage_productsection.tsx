@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Star } from 'lucide-react';
 import { ProductTileSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
 import { RatingModal } from '../components/RatingModal';
 import { ProductModal } from '../components/ProductModal';
-import { Avatar } from '../components/Avatar';
+import { ProductCard } from '../components/ProductCard';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -25,9 +24,13 @@ interface ProductItem {
 
 interface HomepageProductSectionProps {
   onViewProfile?: (profileId: string) => void;
+  onViewProducts?: () => void;
 }
 
-export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({ onViewProfile }) => {
+export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
+  onViewProfile,
+  onViewProducts,
+}) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeProduct, setActiveProduct] = useState<{
@@ -154,21 +157,12 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({ 
     [localProducts],
   );
   const showProductSkeletons = isProductsPending || (isProductsFetching && localProducts.length === 0);
-  const formatRating = (ratingAvg?: number, ratingCount?: number) => {
-    if (!ratingAvg || Number.isNaN(ratingAvg)) {
-      return 'No ratings yet';
-    }
-    if (ratingCount && ratingCount > 0) {
-      return `${ratingAvg.toFixed(1)} (${ratingCount})`;
-    }
-    return ratingAvg.toFixed(1);
-  };
 
   return (
     <>
       <section id="products" className="mt-12">
         <div className="text-center max-w-2xl mx-auto">
-          <h1 className="text-3xl font-semibold">Local Products</h1>
+          <h1 className="text-5xl font-extrabold">Local Products</h1>
           <p className="mt-3 text-sm text-white/70">
             "Experience the best of Ilocos Sur's products"
           </p>
@@ -181,9 +175,18 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({ 
             />
           ) : (
             visibleProducts.map((product) => (
-              <button
+              <ProductCard
                 key={product.id}
-                type="button"
+                title={product.name}
+                imageUrl={product.imageUrl ?? ''}
+                ratingAvg={product.ratingAvg}
+                ratingCount={product.ratingCount}
+                uploaderName={product.uploaderName}
+                uploaderImageUrl={product.uploaderImageUrl}
+                uploaderId={product.uploaderId}
+                onProfileClick={onViewProfile}
+                imageClassName="aspect-[3/4]"
+                className="rounded-bl-2xl rounded-tr-2xl border border-white/10 bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
                 onClick={() =>
                   setActiveProduct({
                     id: product.id,
@@ -197,45 +200,19 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({ 
                     uploaderImageUrl: product.uploaderImageUrl,
                     uploaderId: product.uploaderId,
                   })}
-                className="rounded-xl border border-white/10 bg-white/5 p-1 md:p-2 text-left focus:outline-none focus:ring-2 focus:ring-white/40"
-              >
-                <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-white/10">
-                  <img
-                    src={product.imageUrl ?? ''}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2">
-                    <Avatar
-                      name={product.uploaderName}
-                      imageUrl={product.uploaderImageUrl}
-                      sizeClassName="h-9 w-9"
-                      className="bg-black/40"
-                      onClick={
-                        product.uploaderId && onViewProfile
-                          ? (event) => {
-                              event.stopPropagation();
-                              onViewProfile(product.uploaderId as string);
-                            }
-                          : undefined
-                      }
-                    />
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 bg-black/55 backdrop-blur-sm p-2">
-                    <p className="text-sm font-semibold text-white line-clamp-2">
-                      {product.name}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-sm text-yellow-300">
-                  <Star className="h-4 w-4 text-yellow-300" fill="currentColor" />
-                  <span className="text-white/70">
-                    {formatRating(product.ratingAvg, product.ratingCount)}
-                  </span>
-                </div>
-              </button>
+              />
             ))
           )}
+        </div>
+        <div className="mt-6 flex flex-row items-center justify-center gap-1 text-sm md:text-base text-white/80">
+          <p>Want to see more products?</p>
+          <button
+            type="button"
+            onClick={onViewProducts}
+            className="text-white underline underline-offset-4 hover:text-white/70"
+          >
+            Click here to view more
+          </button>
         </div>
       </section>
 

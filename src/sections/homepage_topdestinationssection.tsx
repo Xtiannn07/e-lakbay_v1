@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SkeletonList, TopDestinationSkeleton } from '../components/hero-ui/Skeletons';
 import { DestinationModalCard } from '../components/DestinationModalCard';
 import { RatingModal } from '../components/RatingModal';
+import { DestinationCard } from '../components/DestinationCard';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -174,9 +175,21 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
               />
             ) : (
               visibleDestinations.map((destination) => (
-                <button
+                <DestinationCard
                   key={destination.id}
-                  type="button"
+                  title={destination.name}
+                  description={destination.description ?? 'A featured destination from Ilocos Sur.'}
+                  imageUrl={destination.imageUrl ?? ''}
+                  imageUrls={destination.imageUrls}
+                  postedBy={destination.postedByName ?? 'Traveler'}
+                  postedByImageUrl={destination.postedByImageUrl}
+                  postedById={destination.postedById}
+                  ratingAvg={destination.ratingAvg}
+                  ratingCount={destination.ratingCount}
+                  imageClassName="aspect-square"
+                  showMeta={false}
+                  className="min-w-[90%] sm:min-w-[60%] lg:min-w-[35%] border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  onProfileClick={onViewProfile}
                   onClick={() =>
                     setActiveDestination({
                       id: destination.id,
@@ -190,29 +203,19 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                       postedByImageUrl: destination.postedByImageUrl,
                       postedById: destination.postedById,
                     })}
-                  className="relative min-w-[90%] sm:min-w-[60%] lg:min-w-[35%] aspect-square overflow-hidden border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
-                >
-                  <img
-                    src={destination.imageUrl ?? ''}
-                    alt={destination.name}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4">
-                    <p className="text-sm sm:text-base font-semibold text-white">{destination.name}</p>
-                  </div>
-                </button>
+                />
               ))
             )}
           </div>
         </div>
-        <div className="mt-6 flex flex-col items-center gap-2 text-sm md:text-base text-white/80">
+        <div className="mt-6 flex flex-row items-center justify-center gap-1 text-sm md:text-base text-white/80">
           <p>Want to see more destinations?</p>
           <button
             type="button"
             onClick={onViewMore}
-            className="text-white underline underline-offset-4 hover:text-white/90"
+            className="text-white underline underline-offset-4 hover:text-white/70"
           >
-            click here to view more
+            Click here to view more
           </button>
         </div>
       </div>

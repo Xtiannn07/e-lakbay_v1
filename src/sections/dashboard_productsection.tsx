@@ -153,6 +153,7 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
                 imageUrl={product.imageUrl ?? ''}
                 ratingAvg={product.ratingAvg}
                 ratingCount={product.ratingCount}
+                showDescription
                 onRate={onRate ? () => onRate(product.name) : undefined}
               />
             </motion.div>

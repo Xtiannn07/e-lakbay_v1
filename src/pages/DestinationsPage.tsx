@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DestinationTileSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
-import { DestinationTile } from '../components/DestinationTile';
+import { DestinationCard } from '../components/DestinationCard';
 import { RatingModal } from '../components/RatingModal';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabaseClient';
@@ -180,17 +180,17 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
             ) : (
               visibleDestinations.map((destination, index) => (
                 <motion.div key={destination.id} {...getItemMotion(index)}>
-                  <DestinationTile
+                  <DestinationCard
                     title={destination.name}
                     description={destination.description ?? 'A featured destination from Ilocos Sur.'}
                     imageUrl={destination.imageUrl ?? ''}
                     imageUrls={destination.imageUrls}
-                    meta="Uploaded destination"
                     postedBy={destination.postedByName ?? 'Community'}
                     postedByImageUrl={destination.postedByImageUrl}
                     postedById={destination.postedById}
                     ratingAvg={destination.ratingAvg}
                     ratingCount={destination.ratingCount}
+                    showDescription
                     enableModal
                     onProfileClick={onViewProfile}
                     onRate={() => {

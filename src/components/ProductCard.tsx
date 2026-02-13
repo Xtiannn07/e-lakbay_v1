@@ -1,13 +1,23 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { Avatar } from './Avatar';
 
 interface ProductCardProps {
   title: string;
-  description: string;
+  description?: string;
   imageUrl: string;
   meta?: string;
   ratingAvg?: number;
   ratingCount?: number;
+  uploaderName?: string;
+  uploaderImageUrl?: string | null;
+  uploaderId?: string | null;
+  onProfileClick?: (profileId: string) => void;
+  showDescription?: boolean;
+  showMeta?: boolean;
+  imageClassName?: string;
+  className?: string;
+  onClick?: () => void;
   onRate?: () => void;
 }
 
@@ -28,39 +38,64 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   meta,
   ratingAvg,
   ratingCount,
+  uploaderName,
+  uploaderImageUrl,
+  uploaderId,
+  onProfileClick,
+  showDescription = false,
+  showMeta = true,
+  imageClassName,
+  className,
+  onClick,
   onRate,
 }) => {
-  return (
-    <article className="glass-secondary border border-white/10 rounded-xl p-2 flex flex-col h-auto text-white">
-      <div className="aspect-square rounded-xl overflow-hidden border border-white/10 bg-white/10">
+  const shouldShowMeta = Boolean(meta) && showMeta;
+  const shouldShowDescription = showDescription && Boolean(description);
+  const cardClassName = `rounded-bl-xl rounded-tr-xl border border-white/10 bg-white/5 ${className ?? ''}`;
+  const cardImageClassName = `relative overflow-hidden rounded-bl-xl rounded-tr-xl ${imageClassName ?? 'aspect-square'}`;
+
+  const content = (
+    <div className="flex flex-col h-full text-white ">
+      <div className={cardImageClassName}>
         <img src={imageUrl} alt={title} className="h-full w-full object-cover" />
-      </div>
-      <div className="flex flex-1 flex-col gap-1 min-h-0 pt-2">
-        <div className="flex items-center justify-end gap-1 text-xs">
-          <Star className="h-4 w-4 text-yellow-300" fill="currentColor" />
+        <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white">
+          <Star className="h-3.5 w-3.5 text-yellow-300" fill="currentColor" />
           <span>{formatRating(ratingAvg, ratingCount)}</span>
         </div>
-        <div className="flex items-start">
-          <div>
-            <h3 className="text-lg font-semibold">{title}</h3>
-            {meta && <p className="text-xs mt-1">{meta}</p>}
-          </div>
+        <div className="absolute inset-x-0 bottom-0 p-2">
+            <p className="text-sm font-semibold text-white line-clamp-2">{title}</p>
         </div>
-        <p className="text-sm text-white/70 leading-relaxed line-clamp-2">
-          {description}
-        </p>
-        {onRate && (
-          <div className="mt-auto flex justify-end">
-            <button
-              type="button"
-              onClick={onRate}
-              className="rounded-full  bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
-            >
-              Rate
-            </button>
-          </div>
-        )}
       </div>
-    </article>
+      {(shouldShowMeta || shouldShowDescription || onRate) && (
+        <div className="px-3 pb-3 pt-2">
+          {shouldShowMeta && <p className="text-xs text-white/60">{meta}</p>}
+          {shouldShowDescription && (
+            <p className="mt-2 text-sm text-white/70 leading-relaxed line-clamp-2">{description}</p>
+          )}
+          {onRate && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={onRate}
+                className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+              >
+                Rate
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
+
+  if (onClick) {
+    const wrapperClassName = `text-left focus:outline-none focus:ring-2 focus:ring-white/30 ${cardClassName}`;
+    return (
+      <button type="button" onClick={onClick} className={wrapperClassName}>
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={cardClassName}>{content}</div>;
 };
