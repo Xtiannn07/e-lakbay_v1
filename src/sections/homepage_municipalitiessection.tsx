@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ProfileChipSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { ProfileChipSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
 

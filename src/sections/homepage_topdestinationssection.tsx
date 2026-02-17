@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { SkeletonList, TopDestinationSkeleton } from '../components/hero-ui/Skeletons';
+import { SkeletonList, TopDestinationSkeleton } from '../components/ui/Skeletons';
 import { DestinationModalCard } from '../components/DestinationModalCard';
 import { RatingModal } from '../components/RatingModal';
 import { DestinationCard } from '../components/DestinationCard';
@@ -20,6 +20,13 @@ interface DestinationItem {
   postedByName?: string;
   postedByImageUrl?: string | null;
   postedById?: string | null;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
 interface HomepageTopDestinationsSectionProps {
@@ -44,6 +51,13 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
     postedByName?: string;
     postedByImageUrl?: string | null;
     postedById?: string | null;
+    location?: {
+      municipality: string | null;
+      barangay: string | null;
+      lat: number | null;
+      lng: number | null;
+      address: string | null;
+    };
   } | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -64,7 +78,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
       try {
         const { data: destinationRows, error: destinationError } = await supabase
           .from('destinations')
-          .select('id, destination_name, description, image_url, image_urls, created_at, user_id')
+          .select('id, destination_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
           .order('created_at', { ascending: false });
 
         if (destinationError) {
@@ -127,6 +141,13 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
             postedByName,
             postedByImageUrl: profile?.img_url ?? null,
             postedById: typedRow.user_id ?? null,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as DestinationItem;
         });
 
@@ -186,6 +207,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                   postedById={destination.postedById}
                   ratingAvg={destination.ratingAvg}
                   ratingCount={destination.ratingCount}
+                  location={destination.location}
                   imageClassName="aspect-square"
                   showMeta={false}
                   className="min-w-[90%] sm:min-w-[60%] lg:min-w-[35%] border border-white/10 bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
@@ -202,6 +224,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                       postedByName: destination.postedByName,
                       postedByImageUrl: destination.postedByImageUrl,
                       postedById: destination.postedById,
+                      location: destination.location,
                     })}
                 />
               ))
@@ -244,6 +267,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
               postedById={activeDestination.postedById}
               ratingAvg={activeDestination.ratingAvg}
               ratingCount={activeDestination.ratingCount}
+              location={activeDestination.location}
               onProfileClick={onViewProfile}
               onRate={() => {
                 if (!user) {

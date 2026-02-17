@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { DestinationModalCard } from './DestinationModalCard';
+import type { LocationData } from '../lib/locationTypes';
 
 interface DestinationCardProps {
   title: string;
@@ -13,6 +14,7 @@ interface DestinationCardProps {
   postedById?: string | null;
   ratingAvg?: number;
   ratingCount?: number;
+  location?: LocationData;
   showDescription?: boolean;
   showMeta?: boolean;
   imageClassName?: string;
@@ -43,6 +45,7 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
   postedById,
   ratingAvg,
   ratingCount,
+  location,
   showDescription = false,
   showMeta = true,
   imageClassName,
@@ -89,6 +92,7 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
               imageUrl={postedByImageUrl}
               sizeClassName="h-7 w-7"
               className="bg-black/40"
+              asButton={false}
               onClick={
                 postedById && onProfileClick
                   ? (event) => {
@@ -145,6 +149,7 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
                 ratingCount={ratingCount}
                 onRate={onRate}
                 onProfileClick={onProfileClick}
+                location={location}
               />
             </div>
           </div>

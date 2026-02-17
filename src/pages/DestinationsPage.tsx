@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DestinationTileSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { DestinationTileSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { DestinationCard } from '../components/DestinationCard';
 import { RatingModal } from '../components/RatingModal';
 import { useAuth } from '../components/AuthProvider';
@@ -33,6 +33,13 @@ interface DestinationItem {
   postedByName?: string;
   postedByImageUrl?: string | null;
   postedById?: string | null;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
 export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, onViewProfile }) => {
@@ -58,7 +65,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
       try {
         const { data: destinationRows, error: destinationError } = await supabase
           .from('destinations')
-          .select('id, destination_name, description, image_url, image_urls, created_at, user_id')
+          .select('id, destination_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
           .order('created_at', { ascending: false });
 
         if (destinationError) {
@@ -121,6 +128,13 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
             postedByName,
             postedByImageUrl: profile?.img_url ?? null,
             postedById: typedRow.user_id ?? null,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as DestinationItem;
         });
       } catch (error) {
@@ -190,6 +204,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
                     postedById={destination.postedById}
                     ratingAvg={destination.ratingAvg}
                     ratingCount={destination.ratingCount}
+                    location={destination.location}
                     showDescription
                     enableModal
                     onProfileClick={onViewProfile}

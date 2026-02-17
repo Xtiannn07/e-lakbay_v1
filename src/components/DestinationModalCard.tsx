@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Cloud, Droplet, MapPin, Star, Sun, Wind } from 'lucide-react';
 import { Avatar } from './Avatar';
+import ViewRoutesModal from './ViewRoutesModal';
+import type { LocationData } from '../lib/locationTypes';
 
 interface DestinationModalCardProps {
   title: string;
@@ -15,6 +17,7 @@ interface DestinationModalCardProps {
   ratingCount?: number;
   onRate?: () => void;
   onProfileClick?: (profileId: string) => void;
+  location?: LocationData;
 }
 
 const formatRating = (ratingAvg?: number, ratingCount?: number) => {
@@ -40,6 +43,7 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   ratingCount,
   onRate,
   onProfileClick,
+  location,
 }) => {
   const images = useMemo(() => {
     if (imageUrls && imageUrls.length > 0) {
@@ -59,6 +63,8 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   const [transitionMs, setTransitionMs] = useState(320);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [showRoutes, setShowRoutes] = useState(false);
+  const hasLocation = Boolean(location && typeof location.lat === 'number' && typeof location.lng === 'number');
 
   const preloadImage = (src: string) =>
     new Promise<void>((resolve) => {
@@ -324,7 +330,12 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
           )}
           <button
             type="button"
-            className="text-xs sm:text-sm font-semibold text-white/80 underline underline-offset-4 hover:text-white"
+            onClick={() => {
+              if (!hasLocation) return;
+              setShowRoutes(true);
+            }}
+            className="text-xs sm:text-sm font-semibold text-white/80 underline underline-offset-4 hover:text-white disabled:opacity-60"
+            disabled={!hasLocation}
           >
             View Routes
           </button>
@@ -337,6 +348,9 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
           See less
         </button>
       </div>
+      {showRoutes && location && (
+        <ViewRoutesModal destination={location} onClose={() => setShowRoutes(false)} />
+      )}
     </article>
   );
 };

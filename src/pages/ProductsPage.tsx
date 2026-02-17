@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ProductCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { ProductCardSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { ProductCard } from '../components/ProductCard';
+import { ProductModal } from '../components/ProductModal';
 import { RatingModal } from '../components/RatingModal';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -17,23 +18,55 @@ import { useAuth } from '../components/AuthProvider';
 
 interface ProductsPageProps {
   onBackHome?: () => void;
+  onViewProfile?: (profileId: string) => void;
 }
 
 interface ProductItem {
   id: string;
   name: string;
   uploaderName: string;
+  uploaderId?: string | null;
+  uploaderImageUrl?: string | null;
   description: string | null;
   imageUrl: string | null;
+  imageUrls?: string[];
   createdAt: string | null;
   ratingAvg?: number;
   ratingCount?: number;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
-export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
+type ActiveProduct = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  imageUrls?: string[];
+  description?: string | null;
+  ratingAvg?: number;
+  ratingCount?: number;
+  uploaderName?: string;
+  uploaderImageUrl?: string | null;
+  uploaderId?: string | null;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
+};
+
+export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewProfile }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
+  const [activeProduct, setActiveProduct] = useState<ActiveProduct | null>(null);
 
   const {
     data: products = [],
@@ -45,7 +78,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
       try {
         const { data: productRows, error: productError } = await supabase
           .from('products')
-          .select('id, product_name, description, image_url, image_urls, created_at, user_id')
+          .select('id, product_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
           .order('created_at', { ascending: false });
 
         if (productError) {
@@ -70,11 +103,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
         });
 
         const userIds = Array.from(new Set((productRows ?? []).map((row) => row.user_id).filter(Boolean))) as string[];
-        const profilesById = new Map<string, { full_name?: string | null; email?: string | null }>();
+        const profilesById = new Map<string, { full_name?: string | null; email?: string | null; img_url?: string | null }>();
         if (userIds.length > 0) {
           const { data: profileRows, error: profileError } = await supabase
             .from('profiles')
-            .select('id, full_name, email')
+            .select('id, full_name, email, img_url')
             .in('id', userIds);
 
           if (profileError) {
@@ -97,11 +130,21 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
             id: row.id,
             name: row.product_name,
             uploaderName,
+            uploaderId: typedRow.user_id ?? null,
+            uploaderImageUrl: profile?.img_url ?? null,
             description: row.description ?? null,
             imageUrl: imageUrls[0] ?? row.image_url ?? null,
+            imageUrls,
             createdAt: row.created_at ?? null,
             ratingAvg,
             ratingCount: rating?.count,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as ProductItem;
         });
       } catch (error) {
@@ -168,8 +211,24 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
                   imageUrl={product.imageUrl ?? ''}
                   ratingAvg={product.ratingAvg}
                   ratingCount={product.ratingCount}
+                  location={product.location}
                   showDescription
                   showMeta
+                  onClick={() => {
+                    setActiveProduct({
+                      id: product.id,
+                      name: product.name,
+                      imageUrl: product.imageUrl ?? '',
+                      imageUrls: product.imageUrls,
+                      description: product.description,
+                      ratingAvg: product.ratingAvg,
+                      ratingCount: product.ratingCount,
+                      uploaderName: product.uploaderName,
+                      uploaderImageUrl: product.uploaderImageUrl,
+                      uploaderId: product.uploaderId,
+                      location: product.location,
+                    });
+                  }}
                   onRate={() => {
                     if (!user) {
                       toast.error('Please sign in to rate products.');
@@ -183,6 +242,21 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
           </div>
         </section>
       </div>
+
+      <ProductModal
+        open={Boolean(activeProduct)}
+        product={activeProduct}
+        onClose={() => setActiveProduct(null)}
+        onProfileClick={onViewProfile}
+        onRate={() => {
+          if (!activeProduct) return;
+          if (!user) {
+            toast.error('Please sign in to rate products.');
+            return;
+          }
+          setRatingTarget({ id: activeProduct.id, name: activeProduct.name });
+        }}
+      />
 
       <RatingModal
         open={Boolean(ratingTarget)}
@@ -216,6 +290,19 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome }) => {
                   ratingCount: nextCount,
                 };
               });
+            });
+
+            setActiveProduct((prev) => {
+              if (!prev || prev.id !== ratingTarget.id) return prev;
+              const currentCount = prev.ratingCount ?? 0;
+              const currentAvg = prev.ratingAvg ?? 0;
+              const nextCount = currentCount + 1;
+              const nextAvg = (currentAvg * currentCount + rating) / nextCount;
+              return {
+                ...prev,
+                ratingAvg: nextAvg,
+                ratingCount: nextCount,
+              };
             });
 
             toast.success('Thanks for your rating!');

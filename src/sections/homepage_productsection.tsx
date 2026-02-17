@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ProductTileSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { ProductTileSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { RatingModal } from '../components/RatingModal';
 import { ProductModal } from '../components/ProductModal';
 import { ProductCard } from '../components/ProductCard';
@@ -20,6 +20,13 @@ interface ProductItem {
   uploaderName: string;
   uploaderImageUrl?: string | null;
   uploaderId?: string | null;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
 interface HomepageProductSectionProps {
@@ -44,6 +51,13 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
     uploaderName?: string;
     uploaderImageUrl?: string | null;
     uploaderId?: string | null;
+    location?: {
+      municipality: string | null;
+      barangay: string | null;
+      lat: number | null;
+      lng: number | null;
+      address: string | null;
+    };
   } | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{
     type: 'Product' | 'Destination';
@@ -61,7 +75,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
       try {
         const { data: productRows, error: productError } = await supabase
           .from('products')
-          .select('id, product_name, description, image_url, image_urls, created_at, user_id')
+          .select('id, product_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
           .order('created_at', { ascending: false });
 
         if (productError) {
@@ -127,6 +141,13 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
             uploaderName,
             uploaderImageUrl: profile?.img_url ?? null,
             uploaderId: typedRow.user_id ?? null,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as ProductItem;
         });
 
@@ -184,6 +205,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
                 uploaderName={product.uploaderName}
                 uploaderImageUrl={product.uploaderImageUrl}
                 uploaderId={product.uploaderId}
+                location={product.location}
                 onProfileClick={onViewProfile}
                 imageClassName="aspect-[3/4]"
                 className="rounded-bl-2xl rounded-tr-2xl border border-white/10 bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
@@ -199,6 +221,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
                     uploaderName: product.uploaderName,
                     uploaderImageUrl: product.uploaderImageUrl,
                     uploaderId: product.uploaderId,
+                    location: product.location,
                   })}
               />
             ))

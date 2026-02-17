@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { DestinationModalCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { DestinationModalCardSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { DestinationModalCard } from '../components/DestinationModalCard';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -22,6 +22,13 @@ interface DestinationItem {
   postedBy: string;
   postedByImageUrl?: string | null;
   postedById?: string | null;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
 export const DashboardDestinationSection: React.FC<DashboardDestinationSectionProps> = ({ onRate, userId }) => {
@@ -44,7 +51,7 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
       try {
         let query = supabase
           .from('destinations')
-          .select('id, destination_name, description, image_url, image_urls, created_at, user_id')
+          .select('id, destination_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
           .order('created_at', { ascending: false });
 
         if (userId) {
@@ -56,7 +63,7 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
         if (destinationError && userId && destinationError.message.toLowerCase().includes('user_id')) {
           const retry = await supabase
             .from('destinations')
-            .select('id, destination_name, description, image_url, image_urls, created_at, user_id')
+            .select('id, destination_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
             .order('created_at', { ascending: false });
           destinationRows = retry.data ?? [];
           destinationError = retry.error ?? null;
@@ -122,6 +129,13 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
             postedBy,
             postedByImageUrl: profile?.img_url ?? null,
             postedById: typedRow.user_id ?? null,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as DestinationItem;
         });
       } catch (error) {
@@ -164,6 +178,7 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
                 postedById={destination.postedById}
                 ratingAvg={destination.ratingAvg}
                 ratingCount={destination.ratingCount}
+                location={destination.location}
                 onRate={onRate ? () => onRate(destination.name) : undefined}
               />
             </motion.div>

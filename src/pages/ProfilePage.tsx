@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { motion, useReducedMotion, easeOut } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DestinationTileSkeleton, ProfileHeaderSkeleton, ProductCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { DestinationTileSkeleton, ProfileHeaderSkeleton, ProductCardSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { DestinationCard } from '../components/DestinationCard';
 import { ProductCard } from '../components/ProductCard';
+import { ProductModal } from '../components/ProductModal';
 import { RatingModal } from '../components/RatingModal';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -37,6 +38,13 @@ interface DestinationItem {
   imageUrls: string[];
   ratingAvg?: number;
   ratingCount?: number;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
 interface ProductItem {
@@ -44,15 +52,41 @@ interface ProductItem {
   name: string;
   description: string | null;
   imageUrl: string | null;
+  imageUrls?: string[];
   ratingAvg?: number;
   ratingCount?: number;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
+
+type ActiveProduct = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  imageUrls?: string[];
+  description?: string | null;
+  ratingAvg?: number;
+  ratingCount?: number;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
+};
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome }) => {
   const shouldReduceMotion = useReducedMotion();
   const queryClient = useQueryClient();
   const [destinationRatingTarget, setDestinationRatingTarget] = useState<{ id: string; name: string } | null>(null);
   const [productRatingTarget, setProductRatingTarget] = useState<{ id: string; name: string } | null>(null);
+  const [activeProduct, setActiveProduct] = useState<ActiveProduct | null>(null);
   
   const getItemMotion = (index: number) =>
     shouldReduceMotion
@@ -101,7 +135,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
       try {
         const { data: destinationRows, error: destinationError } = await supabase
           .from('destinations')
-          .select('id, destination_name, description, image_url, image_urls, created_at')
+          .select('id, destination_name, description, image_url, image_urls, created_at, municipality, barangay, latitude, longitude, address')
           .eq('user_id', profileId)
           .order('created_at', { ascending: false });
 
@@ -138,6 +172,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
             imageUrls,
             ratingAvg,
             ratingCount: rating?.count,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as DestinationItem;
         });
       } catch (fetchError) {
@@ -158,7 +199,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
       try {
         const { data: productRows, error: productError } = await supabase
           .from('products')
-          .select('id, product_name, description, image_url, image_urls, created_at')
+          .select('id, product_name, description, image_url, image_urls, created_at, municipality, barangay, latitude, longitude, address')
           .eq('user_id', profileId)
           .order('created_at', { ascending: false });
 
@@ -192,8 +233,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
             name: row.product_name,
             description: row.description ?? null,
             imageUrl: imageUrls[0] ?? row.image_url ?? null,
+            imageUrls,
             ratingAvg,
             ratingCount: rating?.count,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as ProductItem;
         });
       } catch (fetchError) {
@@ -282,6 +331,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                     postedById={profileId}
                     ratingAvg={destination.ratingAvg}
                     ratingCount={destination.ratingCount}
+                    location={destination.location}
                     showDescription
                     enableModal
                     onRate={() => {
@@ -318,8 +368,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                     uploaderId={profileId}
                     ratingAvg={product.ratingAvg}
                     ratingCount={product.ratingCount}
+                    location={product.location}
                     showDescription
                     showMeta
+                    onClick={() =>
+                      setActiveProduct({
+                        id: product.id,
+                        name: product.name,
+                        imageUrl: product.imageUrl ?? '',
+                        imageUrls: product.imageUrls,
+                        description: product.description,
+                        ratingAvg: product.ratingAvg,
+                        ratingCount: product.ratingCount,
+                        location: product.location,
+                      })
+                    }
                     onRate={() => {
                       setProductRatingTarget({ id: product.id, name: product.name });
                     }}
@@ -359,6 +422,25 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
         }}
       />
 
+      <ProductModal
+        open={Boolean(activeProduct)}
+        product={
+          activeProduct
+            ? {
+                ...activeProduct,
+                uploaderName: displayName,
+                uploaderImageUrl: profile?.imageUrl ?? null,
+                uploaderId: profileId,
+              }
+            : null
+        }
+        onClose={() => setActiveProduct(null)}
+        onRate={() => {
+          if (!activeProduct) return;
+          setProductRatingTarget({ id: activeProduct.id, name: activeProduct.name });
+        }}
+      />
+
       <RatingModal
         open={Boolean(productRatingTarget)}
         title={productRatingTarget ? `Rate Product: ${productRatingTarget.name}` : 'Rate'}
@@ -378,6 +460,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
             }
 
             queryClient.invalidateQueries({ queryKey: ['products', 'profile', profileId] });
+            setActiveProduct((prev) => {
+              if (!prev || prev.id !== productRatingTarget.id) return prev;
+              const currentCount = prev.ratingCount ?? 0;
+              const currentAvg = prev.ratingAvg ?? 0;
+              const nextCount = currentCount + 1;
+              const nextAvg = (currentAvg * currentCount + rating) / nextCount;
+              return {
+                ...prev,
+                ratingAvg: nextAvg,
+                ratingCount: nextCount,
+              };
+            });
             setProductRatingTarget(null);
             toast.success('Product rated successfully!');
           } catch (error) {

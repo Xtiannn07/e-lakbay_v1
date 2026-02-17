@@ -132,7 +132,13 @@ const AppContent: React.FC = () => {
               }}
             />
           ) : view === 'products' ? (
-            <ProductsPage onBackHome={() => setView('home')} />
+            <ProductsPage
+              onBackHome={() => setView('home')}
+              onViewProfile={(profileId) => {
+                setSelectedProfileId(profileId);
+                setView('profile');
+              }}
+            />
           ) : (
             <HomePage
               onViewDestinations={() => setView('destinations')}

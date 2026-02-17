@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './AuthProvider';
+import LocationPickerMap from './LocationPickerMap';
+import type { LocationData } from '../lib/locationTypes';
 import { toast } from 'sonner';
 
 interface ProductUploadModalProps {
@@ -38,7 +40,7 @@ const uploadImages = async (files: File[], folder: string) => {
 export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({ open, onClose }) => {
   const { user } = useAuth();
   const [productName, setProductName] = useState('');
-  const [destinationName, setDestinationName] = useState('');
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -48,7 +50,7 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({ open, on
   useEffect(() => {
     if (!open) {
       setProductName('');
-      setDestinationName('');
+      setLocationData(null);
       setDescription('');
       setFiles([]);
       setPreviews((prev) => {
@@ -107,8 +109,13 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({ open, on
     event.preventDefault();
     if (isSubmitting) return;
 
-    if (!productName.trim() || !destinationName.trim()) {
-      setError('Product name and destination name are required.');
+    if (!productName.trim()) {
+      setError('Product name is required.');
+      return;
+    }
+
+    if (!locationData?.municipality || !locationData?.barangay) {
+      setError('Please select a municipality and barangay.');
       return;
     }
 
@@ -121,13 +128,17 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({ open, on
     setIsSubmitting(true);
 
     try {
-      const imageUrls = await uploadImages(files, `products/${destinationName.trim()}`);
+      const imageUrls = await uploadImages(files, `products/${productName.trim()}`);
       const basePayload = {
-        destination_name: destinationName.trim(),
         product_name: productName.trim(),
         description: description.trim() || null,
         image_url: imageUrls[0] ?? null,
         user_id: user?.id ?? null,
+        municipality: locationData.municipality,
+        barangay: locationData.barangay,
+        latitude: locationData.lat,
+        longitude: locationData.lng,
+        address: locationData.address,
       };
 
       const payloadWithArray = {
@@ -166,7 +177,7 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({ open, on
       onClick={onClose}
     >
       <div
-        className="glass-secondary border border-white/20 rounded-2xl shadow-2xl p-6 w-full max-w-2xl text-white max-h-[85vh] md:max-h-none overflow-y-auto hide-scrollbar"
+        className="glass-secondary border border-white/20 rounded-2xl shadow-2xl p-6 w-full max-w-2xl text-white h-[85vh] md:h-[80vh] max-h-[85vh] md:max-h-[80vh] overflow-y-auto hide-scrollbar"
         role="dialog"
         aria-modal="true"
         aria-labelledby="product-upload-title"
@@ -197,15 +208,14 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({ open, on
               className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-white/70">Product Location</label>
-            <input
-              type="text"
-              value={destinationName}
-              onChange={(event) => setDestinationName(event.target.value)}
-              placeholder="Vigan Heritage"
-              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
-            />
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <label className="text-sm text-white/70">Location</label>
+            <LocationPickerMap onLocationConfirmed={setLocationData} hideIntro />
+            {locationData && (
+              <p className="text-xs text-white/60">
+                Location: {locationData.barangay ?? 'Unknown'}, {locationData.municipality ?? 'Unknown'}
+              </p>
+            )}
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
             <label className="text-sm text-white/70">Description</label>

@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Avatar } from './Avatar';
+import ViewRoutesModal from './ViewRoutesModal';
+import type { LocationData } from '../lib/locationTypes';
 
 interface ProductCardProps {
   title: string;
@@ -12,6 +14,7 @@ interface ProductCardProps {
   uploaderName?: string;
   uploaderImageUrl?: string | null;
   uploaderId?: string | null;
+  location?: LocationData;
   onProfileClick?: (profileId: string) => void;
   showDescription?: boolean;
   showMeta?: boolean;
@@ -41,6 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   uploaderName,
   uploaderImageUrl,
   uploaderId,
+  location,
   onProfileClick,
   showDescription = false,
   showMeta = true,
@@ -49,7 +53,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onClick,
   onRate,
 }) => {
-  const shouldShowMeta = Boolean(meta) && showMeta;
+  const [showRoutes, setShowRoutes] = useState(false);
+  const hasLocation = Boolean(location && typeof location.lat === 'number' && typeof location.lng === 'number');
+  const shouldShowMeta = Boolean(meta) && showMeta && !uploaderName;
+  const shouldShowUploader = Boolean(uploaderName) && showMeta;
   const shouldShowDescription = showDescription && Boolean(description);
   const cardClassName = `rounded-bl-xl rounded-tr-xl border border-white/10 bg-white/5 ${className ?? ''}`;
   const cardImageClassName = `relative overflow-hidden rounded-bl-xl rounded-tr-xl ${imageClassName ?? 'aspect-square'}`;
@@ -66,21 +73,69 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <p className="text-sm font-semibold text-white line-clamp-2">{title}</p>
         </div>
       </div>
-      {(shouldShowMeta || shouldShowDescription || onRate) && (
+      {(shouldShowUploader || shouldShowMeta || shouldShowDescription || onRate || hasLocation) && (
         <div className="px-3 pb-3 pt-2">
+          {shouldShowUploader && (
+            <div className="flex items-center gap-2 text-xs text-white/70">
+              <Avatar
+                name={uploaderName as string}
+                imageUrl={uploaderImageUrl ?? undefined}
+                sizeClassName="h-6 w-6"
+                onClick={
+                  uploaderId && onProfileClick
+                    ? (event) => {
+                        event.stopPropagation();
+                        onProfileClick(uploaderId);
+                      }
+                    : undefined
+                }
+              />
+              {uploaderId && onProfileClick ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onProfileClick(uploaderId);
+                  }}
+                  className="hover:underline hover:underline-offset-4"
+                >
+                  {uploaderName}
+                </button>
+              ) : (
+                <span>{uploaderName}</span>
+              )}
+            </div>
+          )}
           {shouldShowMeta && <p className="text-xs text-white/60">{meta}</p>}
           {shouldShowDescription && (
             <p className="mt-2 text-sm text-white/70 leading-relaxed line-clamp-2">{description}</p>
           )}
-          {onRate && (
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={onRate}
-                className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
-              >
-                Rate
-              </button>
+          {(onRate || hasLocation) && (
+            <div className="mt-3 flex flex-wrap justify-end gap-2">
+              {hasLocation && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setShowRoutes(true);
+                  }}
+                  className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+                >
+                  View Routes
+                </button>
+              )}
+              {onRate && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRate();
+                  }}
+                  className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+                >
+                  Rate
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -91,11 +146,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   if (onClick) {
     const wrapperClassName = `text-left focus:outline-none focus:ring-2 focus:ring-white/30 ${cardClassName}`;
     return (
-      <button type="button" onClick={onClick} className={wrapperClassName}>
-        {content}
-      </button>
+      <>
+        <button type="button" onClick={onClick} className={wrapperClassName}>
+          {content}
+        </button>
+        {showRoutes && location && (
+          <ViewRoutesModal destination={location} onClose={() => setShowRoutes(false)} />
+        )}
+      </>
     );
   }
 
-  return <div className={cardClassName}>{content}</div>;
+  return (
+    <>
+      <div className={cardClassName}>{content}</div>
+      {showRoutes && location && (
+        <ViewRoutesModal destination={location} onClose={() => setShowRoutes(false)} />
+      )}
+    </>
+  );
 };

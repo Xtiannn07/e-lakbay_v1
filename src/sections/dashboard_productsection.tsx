@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { ProductCardSkeleton, SkeletonList } from '../components/hero-ui/Skeletons';
+import { ProductCardSkeleton, SkeletonList } from '../components/ui/Skeletons';
 import { ProductCard } from '../components/ProductCard';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -19,6 +19,13 @@ interface ProductItem {
   createdAt: string | null;
   ratingAvg?: number;
   ratingCount?: number;
+  location?: {
+    municipality: string | null;
+    barangay: string | null;
+    lat: number | null;
+    lng: number | null;
+    address: string | null;
+  };
 }
 
 export const DashboardProductSection: React.FC<DashboardProductSectionProps> = ({ onRate, userId }) => {
@@ -41,7 +48,7 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
       try {
         let query = supabase
           .from('products')
-          .select('id, product_name, destination_name, description, image_url, image_urls, created_at, user_id')
+          .select('id, product_name, destination_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
           .order('created_at', { ascending: false });
 
         if (userId) {
@@ -53,7 +60,7 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
         if (productError && userId && productError.message.toLowerCase().includes('user_id')) {
           const retry = await supabase
             .from('products')
-            .select('id, product_name, destination_name, description, image_url, image_urls, created_at, user_id')
+            .select('id, product_name, destination_name, description, image_url, image_urls, created_at, user_id, municipality, barangay, latitude, longitude, address')
             .order('created_at', { ascending: false });
           productRows = retry.data ?? [];
           productError = retry.error ?? null;
@@ -116,6 +123,13 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
             createdAt: row.created_at ?? null,
             ratingAvg,
             ratingCount: rating?.count,
+            location: {
+              municipality: (row as { municipality?: string | null }).municipality ?? null,
+              barangay: (row as { barangay?: string | null }).barangay ?? null,
+              lat: (row as { latitude?: number | null }).latitude ?? null,
+              lng: (row as { longitude?: number | null }).longitude ?? null,
+              address: (row as { address?: string | null }).address ?? null,
+            },
           } as ProductItem;
         });
       } catch (error) {
@@ -153,6 +167,7 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
                 imageUrl={product.imageUrl ?? ''}
                 ratingAvg={product.ratingAvg}
                 ratingCount={product.ratingCount}
+                location={product.location}
                 showDescription
                 onRate={onRate ? () => onRate(product.name) : undefined}
               />

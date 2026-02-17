@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Star } from 'lucide-react';
 import { Avatar } from './Avatar';
+import ViewRoutesModal from './ViewRoutesModal';
+import type { LocationData } from '../lib/locationTypes';
 
 interface ProductModalProps {
   open: boolean;
   onClose: () => void;
   product: {
+    id: string;
     name: string;
     imageUrl: string;
     imageUrls?: string[];
@@ -15,6 +18,7 @@ interface ProductModalProps {
     uploaderName?: string;
     uploaderImageUrl?: string | null;
     uploaderId?: string | null;
+    location?: LocationData;
   } | null;
   onRate?: () => void;
   onProfileClick?: (profileId: string) => void;
@@ -28,6 +32,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onProfileClick,
 }) => {
   if (!open || !product) return null;
+  const [showRoutes, setShowRoutes] = useState(false);
+  const hasLocation = Boolean(product.location && typeof product.location.lat === 'number' && typeof product.location.lng === 'number');
 
   const images = useMemo(() => {
     if (product.imageUrls && product.imageUrls.length > 0) {
@@ -54,6 +60,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setOffsetPercent(0);
     setIsTransitioning(false);
     setIsImageLoading(false);
+    setShowRoutes(false);
   }, [open, product.id]);
 
   useEffect(() => {
@@ -244,21 +251,35 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </p>
               </div>
 
-              {onRate && (
-                <div className="mt-auto flex justify-end">
-                  <button
-                    type="button"
-                    onClick={onRate}
-                    className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
-                  >
-                    Rate
-                  </button>
+              {(onRate || hasLocation) && (
+                <div className="mt-auto flex flex-wrap justify-end gap-2">
+                  {hasLocation && (
+                    <button
+                      type="button"
+                      onClick={() => setShowRoutes(true)}
+                      className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+                    >
+                      View Routes
+                    </button>
+                  )}
+                  {onRate && (
+                    <button
+                      type="button"
+                      onClick={onRate}
+                      className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+                    >
+                      Rate
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </article>
       </div>
+      {showRoutes && product.location && (
+        <ViewRoutesModal destination={product.location} onClose={() => setShowRoutes(false)} />
+      )}
     </div>
   );
 };

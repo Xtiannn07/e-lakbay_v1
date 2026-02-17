@@ -1,5 +1,5 @@
 import React from 'react';
-import { Skeleton } from '../ui/skeleton';
+import { Skeleton } from './skeleton';
 
 interface SkeletonListProps {
   count: number;
