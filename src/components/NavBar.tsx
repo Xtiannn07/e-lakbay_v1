@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from './modern-ui/button';
 import { cn } from '../lib/utils';
@@ -31,13 +31,6 @@ export const NavBar: React.FC<NavBarProps> = ({
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isLogoutOpen) return;
-    const handleScroll = () => setIsLogoutOpen(false);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isLogoutOpen]);
 
   const displayName = useMemo(() => {
     return profile?.full_name || profile?.email || 'User';

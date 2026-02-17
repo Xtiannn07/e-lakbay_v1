@@ -9,6 +9,7 @@ import { HomePage } from './pages/HomePage';
 import { DestinationsPage } from './pages/DestinationsPage';
 import { ProductsPage } from './pages/ProductsPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminPage from './pages/AdminPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { SonnerGlobal } from './components/modern-ui/sonner';
 import loadingVideo from './assets/Loading_chatbot.webm';
@@ -21,6 +22,24 @@ const ProfileRoute: React.FC<{ onBackHome: () => void }> = ({ onBackHome }) => {
   }
 
   return <ProfilePage profileId={profileId} onBackHome={onBackHome} />;
+};
+
+const AdminRoute: React.FC = () => {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <p className="text-sm text-white/70">Loading...</p>
+      </main>
+    );
+  }
+
+  if (!user || profile?.role !== 'developer') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <AdminPage />;
 };
 
 const AppContent: React.FC = () => {
@@ -142,6 +161,7 @@ const AppContent: React.FC = () => {
               path="/dashboard"
               element={user ? <DashboardPage profile={profile} /> : <Navigate to="/" replace />}
             />
+            <Route path="/admin" element={<AdminRoute />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>

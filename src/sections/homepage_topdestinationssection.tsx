@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SkeletonList, TopDestinationSkeleton } from '../components/ui/Skeletons';
 import { DestinationModalCard } from '../components/DestinationModalCard';
@@ -60,13 +60,6 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
     };
   } | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
-
-  useEffect(() => {
-    if (!activeDestination) return;
-    const handleScroll = () => setActiveDestination(null);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeDestination]);
 
   const {
     data: destinations = [],

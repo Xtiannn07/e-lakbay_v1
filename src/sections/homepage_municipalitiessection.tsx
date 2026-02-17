@@ -27,7 +27,8 @@ export const HomepageMunicipalitiesSection: React.FC<HomepageMunicipalitiesSecti
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, email, img_url')
+          .select('id, full_name, email, img_url, role')
+          .eq('role', 'municipality')
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -76,7 +77,7 @@ export const HomepageMunicipalitiesSection: React.FC<HomepageMunicipalitiesSecti
                   onClick={() => onSelectProfile?.(profile.id)}
                   className="flex flex-col items-center gap-1 text-center min-w-[72px]"
                 >
-                  <div className="h-12 md:h-28 w-12 md:w-28 rounded-full border border-white/15 bg-white/10 overflow-hidden flex items-center justify-center text-sm md:text-3xl font-extrabold">
+                  <div className="h-12 md:h-28 w-12 md:w-28 rounded-full border border-white/15 bg-white overflow-hidden flex items-center justify-center text-sm md:text-3xl font-extrabold text-black">
                     {profile.imageUrl ? (
                       <img src={profile.imageUrl} alt={profile.name} className="h-full w-full object-cover" />
                     ) : (

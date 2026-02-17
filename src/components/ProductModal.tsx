@@ -64,13 +64,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setShowRoutes(false);
   }, [open, product.id]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleScroll = () => onClose();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [open, onClose]);
-
   const formatRating = (ratingAvg?: number, ratingCount?: number) => {
     if (!ratingAvg || Number.isNaN(ratingAvg)) {
       return 'No ratings yet';

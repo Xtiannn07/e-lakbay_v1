@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { DestinationModalCard } from './DestinationModalCard';
@@ -56,13 +56,6 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
   onProfileClick,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isModalOpen) return;
-    const handleScroll = () => setIsModalOpen(false);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isModalOpen]);
 
   const handleCardClick = () => {
     if (enableModal) {

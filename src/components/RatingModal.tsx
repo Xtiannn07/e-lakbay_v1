@@ -22,13 +22,6 @@ export const RatingModal: React.FC<RatingModalProps> = ({ open, title, onClose, 
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleScroll = () => onClose();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [open, onClose]);
-
   if (!open) return null;
 
   return (

@@ -63,13 +63,6 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({ 
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
-    const handleScroll = () => onClose();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [open, onClose]);
-
-  useEffect(() => {
     return () => {
       setPreviews((prev) => {
         prev.forEach((url) => URL.revokeObjectURL(url));

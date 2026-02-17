@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { ProductCardSkeleton, SkeletonList } from '../components/ui/Skeletons';
@@ -65,6 +66,15 @@ type ActiveProduct = {
 };
 
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewProfile }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const getItemMotion = (index: number) =>
+    shouldReduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
+        };
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const location = useLocation();
@@ -237,41 +247,42 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewPr
                 render={(index) => <ProductCardSkeleton key={`product-skeleton-${index}`} />}
               />
             ) : (
-              visibleProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  title={product.name}
-                  meta={product.uploaderName}
-                  description={product.description ?? ''}
-                  imageUrl={product.imageUrl ?? ''}
-                  ratingAvg={product.ratingAvg}
-                  ratingCount={product.ratingCount}
-                  location={product.location}
-                  showDescription
-                  showMeta
-                  onClick={() => {
-                    setActiveProduct({
-                      id: product.id,
-                      name: product.name,
-                      imageUrl: product.imageUrl ?? '',
-                      imageUrls: product.imageUrls,
-                      description: product.description,
-                      ratingAvg: product.ratingAvg,
-                      ratingCount: product.ratingCount,
-                      uploaderName: product.uploaderName,
-                      uploaderImageUrl: product.uploaderImageUrl,
-                      uploaderId: product.uploaderId,
-                      location: product.location,
-                    });
-                  }}
-                  onRate={() => {
-                    if (!user) {
-                      toast.error('Please sign in to rate products.');
-                      return;
-                    }
-                    setRatingTarget({ id: product.id, name: product.name });
-                  }}
-                />
+              visibleProducts.map((product, index) => (
+                <motion.div key={product.id} {...getItemMotion(index)}>
+                  <ProductCard
+                    title={product.name}
+                    meta={product.uploaderName}
+                    description={product.description ?? ''}
+                    imageUrl={product.imageUrl ?? ''}
+                    ratingAvg={product.ratingAvg}
+                    ratingCount={product.ratingCount}
+                    location={product.location}
+                    showDescription
+                    showMeta
+                    onClick={() => {
+                      setActiveProduct({
+                        id: product.id,
+                        name: product.name,
+                        imageUrl: product.imageUrl ?? '',
+                        imageUrls: product.imageUrls,
+                        description: product.description,
+                        ratingAvg: product.ratingAvg,
+                        ratingCount: product.ratingCount,
+                        uploaderName: product.uploaderName,
+                        uploaderImageUrl: product.uploaderImageUrl,
+                        uploaderId: product.uploaderId,
+                        location: product.location,
+                      });
+                    }}
+                    onRate={() => {
+                      if (!user) {
+                        toast.error('Please sign in to rate products.');
+                        return;
+                      }
+                      setRatingTarget({ id: product.id, name: product.name });
+                    }}
+                  />
+                </motion.div>
               ))
             )}
           </div>
