@@ -32,13 +32,6 @@ export const GlobalModal: React.FC<GlobalModalProps> = ({ onModeChange }) => {
     setIsSubmitting(false);
   }, [type]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleScroll = () => closeModal();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [open, closeModal]);
-
   const isSignup = type === 'signup';
 
   const primaryLabel = useMemo(() => (isSignup ? 'Create Account' : 'Log In'), [isSignup]);
