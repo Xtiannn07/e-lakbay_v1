@@ -1,8 +1,29 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { Cloud, Droplet, MapPin, Star, Sun, Wind } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Cloud,
+  CloudDrizzle,
+  CloudLightning,
+  CloudRain,
+  Snowflake,
+  Star,
+  Sun,
+  Wind,
+} from 'lucide-react';
 import { Avatar } from './Avatar';
 import ViewRoutesModal from './ViewRoutesModal';
+import { DescriptionContainer } from './destination-modal/DescriptionContainer';
+import { FooterActionsContainer } from './destination-modal/FooterActionsContainer';
+import { ImageGalleryContainer } from './destination-modal/ImageGalleryContainer';
+import { WeatherContainer } from './destination-modal/WeatherContainer';
 import type { LocationData } from '../lib/locationTypes';
+import { preloadImageUrl } from '../lib/imagePreloadCache';
+import {
+  fetchCurrentWeather,
+  fetchCurrentWeatherByMunicipality,
+  type CurrentWeatherData,
+} from '../lib/weather';
+
+const preloadedDestinationGalleryKeys = new Set<string>();
 
 interface DestinationModalCardProps {
   title: string;
@@ -30,6 +51,27 @@ const formatRating = (ratingAvg?: number, ratingCount?: number) => {
   return ratingAvg.toFixed(1);
 };
 
+const getWeatherIcon = (condition?: string) => {
+  const normalized = condition?.toLowerCase() ?? '';
+
+  if (normalized.includes('thunder')) return CloudLightning;
+  if (normalized.includes('drizzle')) return CloudDrizzle;
+  if (normalized.includes('rain')) return CloudRain;
+  if (normalized.includes('snow') || normalized.includes('sleet') || normalized.includes('hail')) return Snowflake;
+  if (normalized.includes('clear') || normalized.includes('sun')) return Sun;
+  if (
+    normalized.includes('mist') ||
+    normalized.includes('fog') ||
+    normalized.includes('haze') ||
+    normalized.includes('smoke') ||
+    normalized.includes('dust')
+  ) {
+    return Wind;
+  }
+
+  return Cloud;
+};
+
 export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   title,
   description,
@@ -51,6 +93,7 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
     }
     return [imageUrl];
   }, [imageUrl, imageUrls]);
+  const galleryKey = useMemo(() => images.join('|'), [images]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -63,31 +106,115 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   const [transitionMs, setTransitionMs] = useState(320);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isGalleryReady, setIsGalleryReady] = useState(false);
+  const [weather, setWeather] = useState<CurrentWeatherData | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
   const [showRoutes, setShowRoutes] = useState(false);
+  const municipalityName = location?.municipality?.trim() ?? '';
   const hasLocation = Boolean(location && typeof location.lat === 'number' && typeof location.lng === 'number');
   const swipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
-  const preloadImage = (src: string) =>
-    new Promise<void>((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      img.src = src;
-    });
+  useEffect(() => {
+    if (!municipalityName && (!hasLocation || location?.lat == null || location?.lng == null)) {
+      setWeather(null);
+      setWeatherError('Location municipality is unavailable.');
+      setWeatherLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadWeather = async () => {
+      setWeatherLoading(true);
+      setWeatherError(null);
+
+      try {
+        const result = municipalityName
+          ? await fetchCurrentWeatherByMunicipality(municipalityName, 'Ilocos Sur', 'PH', controller.signal)
+          : await fetchCurrentWeather(location?.lat as number, location?.lng as number, controller.signal);
+
+        if (!controller.signal.aborted) {
+          setWeather(result);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : 'Unable to load weather right now.';
+        setWeather(null);
+        setWeatherError(message);
+      } finally {
+        if (!controller.signal.aborted) {
+          setWeatherLoading(false);
+        }
+      }
+    };
+
+    void loadWeather();
+
+    return () => {
+      controller.abort();
+    };
+  }, [hasLocation, location?.lat, location?.lng, municipalityName]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (preloadedDestinationGalleryKeys.has(galleryKey)) {
+      setIsGalleryReady(true);
+      setIsImageLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const preloadAll = async () => {
+      setIsGalleryReady(false);
+      setIsImageLoading(true);
+      await Promise.all(images.map((src) => preloadImageUrl(src)));
+
+      if (cancelled) return;
+      preloadedDestinationGalleryKeys.add(galleryKey);
+      setIsGalleryReady(true);
+      setIsImageLoading(false);
+    };
+
+    void preloadAll();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [galleryKey]);
+
+  useEffect(() => {
+    if (images.length === 0) return;
+
+    const current = images[activeIndex];
+    const next = images[(activeIndex + 1) % images.length];
+    const prev = images[(activeIndex - 1 + images.length) % images.length];
+
+    void preloadImageUrl(current);
+    void preloadImageUrl(next);
+    void preloadImageUrl(prev);
+  }, [activeIndex, galleryKey]);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    setSlideState(null);
+    setOffsetPercent(0);
+    setIsTransitioning(false);
+  }, [galleryKey]);
 
   const runSlide = async (direction: 'next' | 'prev') => {
-    if (isTransitioning || images.length <= 1) return;
+    if (isTransitioning || images.length <= 1 || !isGalleryReady) return;
 
     const targetIndex =
       direction === 'next'
         ? (activeIndex + 1) % images.length
         : (activeIndex - 1 + images.length) % images.length;
 
-    setIsImageLoading(true);
-    const start = performance.now();
-    await preloadImage(images[targetIndex]);
-    const elapsed = performance.now() - start;
-    const duration = Math.min(900, Math.max(220, Math.round(elapsed)));
+    const duration = 320;
+    const startOffset = direction === 'next' ? 0 : 50;
+    const endOffset = direction === 'next' ? 50 : 0;
 
     setTransitionMs(duration);
     setSlideState({
@@ -95,21 +222,23 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
       to: direction === 'next' ? targetIndex : activeIndex,
       direction,
     });
-    setOffsetPercent(direction === 'next' ? 0 : 50);
+    setOffsetPercent(startOffset);
     setIsTransitioning(false);
 
     requestAnimationFrame(() => {
-      setIsTransitioning(true);
-      setOffsetPercent(direction === 'next' ? 50 : 0);
+      requestAnimationFrame(() => {
+        setIsTransitioning(true);
+        setOffsetPercent(endOffset);
+      });
     });
   };
 
   const handlePrev = () => {
-    runSlide('prev');
+    void runSlide('prev');
   };
 
   const handleNext = () => {
-    runSlide('next');
+    void runSlide('next');
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -123,7 +252,7 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     const start = swipeStartRef.current;
     swipeStartRef.current = null;
-    if (!start || images.length <= 1 || isTransitioning || isImageLoading) return;
+    if (!start || images.length <= 1 || isTransitioning || isImageLoading || !isGalleryReady) return;
 
     const deltaX = event.clientX - start.x;
     const deltaY = event.clientY - start.y;
@@ -150,236 +279,121 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
     [],
   );
 
-  const forecastDays = useMemo(() => {
-    const base = new Date();
-    return Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(base);
-      date.setDate(base.getDate() + index + 1);
-      return {
-        label: date.toLocaleDateString(undefined, { weekday: 'short' }),
-        temp: `${28 + (index % 3)}°C`,
-        condition: index % 2 === 0 ? 'Clouds' : 'Sunny',
-        icon: index % 2 === 0 ? 'cloud' : 'sun',
-      };
-    });
-  }, []);
+  const WeatherIcon = getWeatherIcon(weather?.condition);
+
+  const headerSection = (
+    <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-white/70">
+        <Avatar
+          name={postedBy}
+          imageUrl={postedByImageUrl}
+          sizeClassName="h-6 w-6 sm:h-7 sm:w-7"
+          onClick={postedById && onProfileClick ? () => onProfileClick(postedById) : undefined}
+        />
+        {postedById && onProfileClick ? (
+          <button
+            type="button"
+            onClick={() => onProfileClick(postedById)}
+            className="hover:underline hover:underline-offset-4"
+          >
+            {postedBy}
+          </button>
+        ) : (
+          <span>{postedBy}</span>
+        )}
+      </div>
+      {meta && <span className="text-[10px] sm:text-xs text-white/50">{meta}</span>}
+    </header>
+  );
+
+  const mediaAndWeatherSection = (
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)] gap-5">
+      <ImageGalleryContainer
+        images={images}
+        title={title}
+        activeIndex={activeIndex}
+        slideState={slideState}
+        offsetPercent={offsetPercent}
+        transitionMs={transitionMs}
+        isTransitioning={isTransitioning}
+        isImageLoading={isImageLoading}
+        isGalleryReady={isGalleryReady}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => {
+          swipeStartRef.current = null;
+        }}
+        onTransitionEnd={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (!slideState) return;
+          setActiveIndex(slideState.direction === 'next' ? slideState.to : slideState.from);
+          setSlideState(null);
+          setIsTransitioning(false);
+          setIsImageLoading(false);
+          setOffsetPercent(0);
+        }}
+      />
+
+      <WeatherContainer
+        detailsOpen={detailsOpen}
+        title={title}
+        todayLabel={todayLabel}
+        weatherLoading={weatherLoading}
+        weather={weather}
+        WeatherIcon={WeatherIcon}
+      />
+    </div>
+  );
+
+  const mobileDetailsToggle = !detailsOpen && (
+    <div className="flex items-center justify-between lg:hidden">
+      <div className="flex items-center gap-2 text-xs text-yellow-300">
+        <Star className="h-3.5 w-3.5 text-yellow-300" fill="currentColor" />
+        <span className="text-white/70">{formatRating(ratingAvg, ratingCount)}</span>
+      </div>
+      <button
+        type="button"
+        onClick={() => setDetailsOpen(true)}
+        className="text-xs font-semibold text-white/80 underline underline-offset-4 hover:text-white"
+      >
+        See more
+      </button>
+    </div>
+  );
+
+  const descriptionSection = (
+    <DescriptionContainer
+      detailsOpen={detailsOpen}
+      title={title}
+      ratingLabel={formatRating(ratingAvg, ratingCount)}
+      description={description}
+    />
+  );
+
+  const footerActions = (
+    <FooterActionsContainer
+      onRate={onRate}
+      hasLocation={hasLocation}
+      onViewRoutes={() => {
+        if (!hasLocation) return;
+        setShowRoutes(true);
+      }}
+      detailsOpen={detailsOpen}
+      onCloseDetails={() => setDetailsOpen(false)}
+    />
+  );
 
   return (
-    <article className="glass-secondary border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col gap-5 w-full max-h-[85vh] overflow-y-auto hide-scrollbar md:max-h-none md:overflow-visible">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-white/70">
-          <Avatar
-            name={postedBy}
-            imageUrl={postedByImageUrl}
-            sizeClassName="h-6 w-6 sm:h-7 sm:w-7"
-            onClick={postedById && onProfileClick ? () => onProfileClick(postedById) : undefined}
-          />
-          {postedById && onProfileClick ? (
-            <button
-              type="button"
-              onClick={() => onProfileClick(postedById)}
-              className="hover:underline hover:underline-offset-4"
-            >
-              {postedBy}
-            </button>
-          ) : (
-            <span>{postedBy}</span>
-          )}
-        </div>
-        {meta && <span className="text-[10px] sm:text-xs text-white/50">{meta}</span>}
-      </header>
-
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-5">
-        <div
-          className="relative rounded-2xl overflow-hidden border border-white/10 bg-white/10"
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={() => {
-            swipeStartRef.current = null;
-          }}
-        >
-          {slideState ? (
-            <div
-              className="flex w-[200%]"
-              style={{
-                transform: `translateX(-${offsetPercent}%)`,
-                transition: isTransitioning ? `transform ${transitionMs}ms ease` : 'none',
-              }}
-              onTransitionEnd={() => {
-                if (!slideState) return;
-                setActiveIndex(slideState.direction === 'next' ? slideState.to : slideState.from);
-                setSlideState(null);
-                setIsTransitioning(false);
-                setIsImageLoading(false);
-                setOffsetPercent(0);
-              }}
-            >
-              <div className="w-1/2">
-                <img
-                  src={images[slideState.from]}
-                  alt={title}
-                  className="h-56 sm:h-72 lg:h-80 w-full object-cover"
-                />
-              </div>
-              <div className="w-1/2">
-                <img
-                  src={images[slideState.to]}
-                  alt={title}
-                  className="h-56 sm:h-72 lg:h-80 w-full object-cover"
-                />
-              </div>
-            </div>
-          ) : (
-            <img
-              src={images[activeIndex]}
-              alt={title}
-              className="h-56 sm:h-72 lg:h-80 w-full object-cover"
-            />
-          )}
-          {images.length > 1 && (
-            <>
-              <button
-                type="button"
-                aria-label="Previous image"
-                onClick={handlePrev}
-                disabled={isImageLoading || isTransitioning}
-                className="absolute inset-y-0 left-0 w-1/2 cursor-w-resize disabled:cursor-not-allowed"
-              />
-              <button
-                type="button"
-                aria-label="Next image"
-                onClick={handleNext}
-                disabled={isImageLoading || isTransitioning}
-                className="absolute inset-y-0 right-0 w-1/2 cursor-e-resize disabled:cursor-not-allowed"
-              />
-            </>
-          )}
-          {images.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-black/40 px-3 py-1">
-              {images.map((_, index) => (
-                <span
-                  key={`dot-${index}`}
-                  className={`h-2 w-2 rounded-full ${index === activeIndex ? 'bg-white' : 'bg-white/40'}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="glass border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col gap-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
-              <MapPin className="h-4 w-4 text-white/70" />
-              <span>{title}</span>
-            </div>
-            <span className="text-[10px] sm:text-xs text-white/60">{todayLabel}</span>
-          </div>
-
-          <div className={`${detailsOpen ? 'block' : 'hidden'} lg:block`}>
-            <>
-              <div className="flex items-center gap-3 sm:gap-4">
-                <Cloud className="h-10 w-10 sm:h-16 sm:w-16 text-white/80" />
-                <div>
-                  <div className="text-xl sm:text-4xl font-bold">29°C</div>
-                  <div className="text-xs sm:text-sm text-white/60">Clouds</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-white/70">
-                <div className="flex items-center gap-1">
-                  <Droplet className="h-4 w-4 sm:h-5 sm:w-5 text-white/70" />
-                  <span>Humidity 78%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Wind className="h-4 w-4 sm:h-5 sm:w-5 text-white/70" />
-                  <span>Wind 12 km/h</span>
-                </div>
-              </div>
-
-              <div className="mt-2">
-                <p className="text-[10px] sm:text-xs uppercase tracking-wide text-white/50 mb-2">Forecast</p>
-                <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-                  {forecastDays.map((day, index) => (
-                    <div
-                      key={`${day.label}-${index}`}
-                      className="min-w-[120px] rounded-xl border border-white/10 bg-white/5 p-3 flex flex-col gap-1"
-                    >
-                      <span className="text-[10px] sm:text-xs text-white/60">{day.label}</span>
-                      {day.icon === 'cloud' ? (
-                        <Cloud className="h-5 w-5 text-white/70" />
-                      ) : (
-                        <Sun className="h-5 w-5 text-white/70" />
-                      )}
-                      <span className="text-xs sm:text-sm font-semibold">{day.temp}</span>
-                      <span className="text-[10px] sm:text-xs text-white/50">{day.condition}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          </div>
-        </div>
+    <article className="glass-secondary border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col w-full h-[72vh] sm:h-[75vh] lg:h-[85vh] overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar flex flex-col gap-2">
+        {headerSection}
+        {mediaAndWeatherSection}
+        {mobileDetailsToggle}
+        {descriptionSection}
       </div>
-
-      {!detailsOpen && (
-        <div className="flex items-center justify-between lg:hidden">
-          <div className="flex items-center gap-2 text-xs text-yellow-300">
-            <Star className="h-3.5 w-3.5 text-yellow-300" fill="currentColor" />
-            <span className="text-white/70">{formatRating(ratingAvg, ratingCount)}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setDetailsOpen(true)}
-            className="text-xs font-semibold text-white/80 underline underline-offset-4 hover:text-white"
-          >
-            See more
-          </button>
-        </div>
-      )}
-
-      <div className={`flex flex-col gap-2 ${detailsOpen ? 'block' : 'hidden'} lg:block`}>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h3 className="text-base sm:text-lg font-semibold">{title}</h3>
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-yellow-300">
-            <Star className="h-4 w-4 text-yellow-300" fill="currentColor" />
-            <span className="text-white/70">{formatRating(ratingAvg, ratingCount)}</span>
-          </div>
-        </div>
-        <div className="max-h-40 md:max-h-56 overflow-y-auto pr-1">
-          <p className="text-xs sm:text-sm text-white/70 leading-relaxed">{description}</p>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          {onRate ? (
-            <button
-              type="button"
-              onClick={onRate}
-              className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-white/20 transition-colors"
-            >
-              Rate
-            </button>
-          ) : (
-            <span className="text-[10px] sm:text-xs text-white/40">Average rating shown</span>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              if (!hasLocation) return;
-              setShowRoutes(true);
-            }}
-            className="text-xs sm:text-sm font-semibold text-white/80 underline underline-offset-4 hover:text-white disabled:opacity-60"
-            disabled={!hasLocation}
-          >
-            View Routes
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={() => setDetailsOpen(false)}
-          className="text-[10px] sm:text-xs text-white/60 underline underline-offset-4 hover:text-white lg:hidden"
-        >
-          See less
-        </button>
-      </div>
+      {footerActions}
       {showRoutes && location && (
         <ViewRoutesModal destination={location} onClose={() => setShowRoutes(false)} />
       )}

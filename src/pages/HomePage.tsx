@@ -30,7 +30,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewPr
           navigate(query ? `/products?q=${encodeURIComponent(query)}` : '/products');
         }}
       />
-      <main className="bg-slate-950 text-white px-4 sm:px-6 lg:px-10 pb-12">
+      <main className="bg-cyan-800 text-white px-4 sm:px-6 lg:px-10 pb-12">
         <div className="max-w-7xl mx-auto">
           <motion.div {...sectionMotion}>
             <HomepageMunicipalitiesSection onSelectProfile={onViewProfile} />

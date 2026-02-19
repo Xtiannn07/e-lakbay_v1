@@ -82,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 imageUrl={uploaderImageUrl ?? undefined}
                 sizeClassName="h-6 w-6"
                 onClick={
-                  uploaderId && onProfileClick
+                  uploaderId && onProfileClick && !onClick
                     ? (event) => {
                         event.stopPropagation();
                         onProfileClick(uploaderId);
@@ -91,16 +91,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 }
               />
               {uploaderId && onProfileClick ? (
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onProfileClick(uploaderId);
-                  }}
-                  className="hover:underline hover:underline-offset-4"
-                >
-                  {uploaderName}
-                </button>
+                onClick ? (
+                  <span
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onProfileClick(uploaderId);
+                    }}
+                    className="hover:underline hover:underline-offset-4 cursor-pointer"
+                  >
+                    {uploaderName}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onProfileClick(uploaderId);
+                    }}
+                    className="hover:underline hover:underline-offset-4"
+                  >
+                    {uploaderName}
+                  </button>
+                )
               ) : (
                 <span>{uploaderName}</span>
               )}
@@ -113,28 +125,52 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {(onRate || hasLocation) && (
             <div className="mt-3 flex flex-wrap justify-end gap-2">
               {hasLocation && (
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setShowRoutes(true);
-                  }}
-                  className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
-                >
-                  View Routes
-                </button>
+                onClick ? (
+                  <span
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setShowRoutes(true);
+                    }}
+                    className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors cursor-pointer"
+                  >
+                    View Routes
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setShowRoutes(true);
+                    }}
+                    className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+                  >
+                    View Routes
+                  </button>
+                )
               )}
               {onRate && (
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRate();
-                  }}
-                  className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
-                >
-                  Rate
-                </button>
+                onClick ? (
+                  <span
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onRate();
+                    }}
+                    className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors cursor-pointer"
+                  >
+                    Rate
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onRate();
+                    }}
+                    className="rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/20 transition-colors"
+                  >
+                    Rate
+                  </button>
+                )
               )}
             </div>
           )}

@@ -3,6 +3,9 @@ import { Star } from 'lucide-react';
 import { Avatar } from './Avatar';
 import ViewRoutesModal from './ViewRoutesModal';
 import type { LocationData } from '../lib/locationTypes';
+import { preloadImageUrl } from '../lib/imagePreloadCache';
+
+const preloadedProductGalleryKeys = new Set<string>();
 
 interface ProductModalProps {
   open: boolean;
@@ -41,6 +44,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     }
     return [product.imageUrl];
   }, [product.imageUrl, product.imageUrls]);
+  const galleryKey = useMemo(() => images.join('|'), [images]);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [slideState, setSlideState] = useState<{
@@ -52,6 +56,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [transitionMs, setTransitionMs] = useState(320);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isGalleryReady, setIsGalleryReady] = useState(false);
   const swipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   useEffect(() => {
@@ -61,6 +66,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setOffsetPercent(0);
     setIsTransitioning(false);
     setIsImageLoading(false);
+    setIsGalleryReady(false);
     setShowRoutes(false);
   }, [open, product.id]);
 
@@ -74,27 +80,69 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     return ratingAvg.toFixed(1);
   };
 
-  const preloadImage = (src: string) =>
-    new Promise<void>((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      img.src = src;
-    });
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+
+    if (preloadedProductGalleryKeys.has(galleryKey)) {
+      setIsGalleryReady(true);
+      setIsImageLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const preloadAll = async () => {
+      setIsGalleryReady(false);
+      setIsImageLoading(true);
+      await Promise.all(images.map((src) => preloadImageUrl(src)));
+
+      if (cancelled) return;
+      preloadedProductGalleryKeys.add(galleryKey);
+      setIsGalleryReady(true);
+      setIsImageLoading(false);
+    };
+
+    void preloadAll();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [galleryKey, images, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    setActiveIndex(0);
+    setSlideState(null);
+    setOffsetPercent(0);
+    setIsTransitioning(false);
+  }, [galleryKey, open]);
+
+  useEffect(() => {
+    if (!open || images.length === 0) return;
+
+    const current = images[activeIndex];
+    const next = images[(activeIndex + 1) % images.length];
+    const prev = images[(activeIndex - 1 + images.length) % images.length];
+
+    void preloadImageUrl(current);
+    void preloadImageUrl(next);
+    void preloadImageUrl(prev);
+  }, [activeIndex, images, open]);
 
   const runSlide = async (direction: 'next' | 'prev') => {
-    if (isTransitioning || images.length <= 1) return;
+    if (isTransitioning || images.length <= 1 || !isGalleryReady) return;
 
     const targetIndex =
       direction === 'next'
         ? (activeIndex + 1) % images.length
         : (activeIndex - 1 + images.length) % images.length;
 
-    setIsImageLoading(true);
-    const start = performance.now();
-    await preloadImage(images[targetIndex]);
-    const elapsed = performance.now() - start;
-    const duration = Math.min(900, Math.max(220, Math.round(elapsed)));
+    const duration = 320;
+
+    const startOffset = direction === 'next' ? 0 : 50;
+    const endOffset = direction === 'next' ? 50 : 0;
 
     setTransitionMs(duration);
     setSlideState({
@@ -102,12 +150,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       to: direction === 'next' ? targetIndex : activeIndex,
       direction,
     });
-    setOffsetPercent(direction === 'next' ? 0 : 50);
+    setOffsetPercent(startOffset);
     setIsTransitioning(false);
 
     requestAnimationFrame(() => {
-      setIsTransitioning(true);
-      setOffsetPercent(direction === 'next' ? 50 : 0);
+      requestAnimationFrame(() => {
+        setIsTransitioning(true);
+        setOffsetPercent(endOffset);
+      });
     });
   };
 
@@ -130,7 +180,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     const start = swipeStartRef.current;
     swipeStartRef.current = null;
-    if (!start || images.length <= 1 || isTransitioning || isImageLoading) return;
+    if (!start || images.length <= 1 || isTransitioning || isImageLoading || !isGalleryReady) return;
 
     const deltaX = event.clientX - start.x;
     const deltaY = event.clientY - start.y;
@@ -170,14 +220,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 swipeStartRef.current = null;
               }}
             >
-              {slideState ? (
+              <img
+                src={images[activeIndex]}
+                alt={product.name}
+                className="h-64 sm:h-80 md:h-[520px] w-full object-cover"
+                loading="eager"
+                decoding="sync"
+              />
+
+              {slideState && (
                 <div
-                  className="flex w-[200%]"
+                  className="absolute inset-0 flex w-[200%]"
                   style={{
                     transform: `translateX(-${offsetPercent}%)`,
                     transition: isTransitioning ? `transform ${transitionMs}ms ease` : 'none',
                   }}
-                  onTransitionEnd={() => {
+                  onTransitionEnd={(event) => {
+                    if (event.target !== event.currentTarget) return;
                     if (!slideState) return;
                     setActiveIndex(slideState.direction === 'next' ? slideState.to : slideState.from);
                     setSlideState(null);
@@ -191,6 +250,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       src={images[slideState.from]}
                       alt={product.name}
                       className="h-64 sm:h-80 md:h-[520px] w-full object-cover"
+                      loading="eager"
+                      decoding="sync"
                     />
                   </div>
                   <div className="w-1/2">
@@ -198,15 +259,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       src={images[slideState.to]}
                       alt={product.name}
                       className="h-64 sm:h-80 md:h-[520px] w-full object-cover"
+                      loading="eager"
+                      decoding="sync"
                     />
                   </div>
                 </div>
-              ) : (
-                <img
-                  src={images[activeIndex]}
-                  alt={product.name}
-                  className="h-64 sm:h-80 md:h-[520px] w-full object-cover"
-                />
+              )}
+
+              {isImageLoading && (
+                <div className="absolute inset-0 bg-black/25 pointer-events-none" />
               )}
 
               {images.length > 1 && (
