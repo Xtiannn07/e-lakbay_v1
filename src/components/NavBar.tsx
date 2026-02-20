@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Button } from './modern-ui/button';
 import { cn } from '../lib/utils';
 import { useModal } from './ModalContext';
-import logo from '../assets/E-lakbay_Logo.svg';
+import logo from '../assets/e-lakbay_logo(white).svg';
 import type { Profile } from './AuthProvider';
 
 interface NavBarProps {
@@ -61,7 +61,7 @@ export const NavBar: React.FC<NavBarProps> = ({
         <img 
           src={logo} 
           alt="E-Lakbay" 
-          className="h-7 md:h-13 w-auto opacity-75"
+          className="h-7 md:h-14 w-auto opacity-90"
         />
       </button>
       {/* Navigation Items */}

@@ -13,6 +13,7 @@ import AdminPage from './pages/AdminPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { SonnerGlobal } from './components/modern-ui/sonner';
 import loadingVideo from './assets/Loading_chatbot.webm';
+import Footer from './sections/footer';
 
 const ProfileRoute: React.FC<{ onBackHome: () => void }> = ({ onBackHome }) => {
   const { profileId } = useParams();
@@ -165,6 +166,7 @@ const AppContent: React.FC = () => {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
+        <Footer />
         <GlobalModal onModeChange={setActive} />
       </div>
       <SonnerGlobal />
