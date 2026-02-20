@@ -353,12 +353,12 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
     <div className="flex items-center justify-between lg:hidden">
       <div className="flex items-center gap-2 text-xs text-yellow-300">
         <Star className="h-3.5 w-3.5 text-yellow-300" fill="currentColor" />
-        <span className="text-white/70">{formatRating(ratingAvg, ratingCount)}</span>
+        <span className="modal-stone-muted">{formatRating(ratingAvg, ratingCount)}</span>
       </div>
       <button
         type="button"
         onClick={() => setDetailsOpen(true)}
-        className="text-xs font-semibold text-white/80 underline underline-offset-4 hover:text-white"
+        className="text-xs font-semibold modal-stone-muted underline underline-offset-4 hover:opacity-80"
       >
         See more
       </button>
@@ -388,7 +388,7 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   );
 
   return (
-    <article className={`glass-secondary border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col w-full overflow-hidden ${isCard ? 'h-[80vh]' : 'h-[72vh] sm:h-[75vh] lg:h-[85vh]'}`}>
+    <article className={`glass-secondary modal-stone-text border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col w-full overflow-hidden ${isCard ? 'h-[80vh]' : 'h-[72vh] sm:h-[75vh] lg:h-[85vh]'}`}>
       <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar flex flex-col gap-2">
         {headerSection}
         {mediaAndWeatherSection}

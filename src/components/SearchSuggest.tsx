@@ -55,7 +55,7 @@ export const SearchSuggest: React.FC<SearchSuggestProps> = ({
       </div>
 
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 mt-2 rounded-2xl glass-secondary border border-white/10 shadow-xl">
+        <div className="absolute left-0 right-0 mt-2 rounded-2xl glass-secondary border border-white/10">
           <ul className="py-2 max-h-64 overflow-auto">
             {suggestions.map((item) => (
               <li key={item.id}>

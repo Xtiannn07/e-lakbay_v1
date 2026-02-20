@@ -166,7 +166,7 @@ export const DashboardDestinationSection: React.FC<DashboardDestinationSectionPr
           />
         ) : (
           visibleDestinations.map((destination, index) => (
-            <motion.div key={destination.id} className="homepage-card-shadow" {...getItemMotion(index)}>
+            <motion.div key={destination.id} {...getItemMotion(index)}>
               <DestinationModalCard
                 title={destination.name}
                 meta="Uploaded destination"

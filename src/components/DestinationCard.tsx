@@ -67,7 +67,7 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
 
   const shouldShowMeta = Boolean(postedBy) && showMeta;
   const shouldShowDescription = showDescription && Boolean(description);
-  const cardClassName = `rounded-bl-xl rounded-tr-xl glass-card ${className ?? ''}`;
+  const cardClassName = `rounded-bl-xl rounded-tr-xl glass-card-nonmodal ${className ?? ''}`;
   const cardImageClassName = `relative overflow-hidden rounded-bl-xl rounded-tr-xl ${imageClassName ?? 'aspect-[4/3]'}`;
 
   const content = (

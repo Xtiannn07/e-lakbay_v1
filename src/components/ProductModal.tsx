@@ -210,7 +210,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         aria-labelledby="product-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <article className="glass-secondary border border-white/10 rounded-2xl p-4 sm:p-6 text-white">
+        <article className="glass-secondary modal-stone-text border border-white/10 rounded-2xl p-4 sm:p-6">
           <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-5">
             <div
               className="relative rounded-2xl overflow-hidden glass-card"
@@ -308,7 +308,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                     {product.name}
                   </h2>
                   {product.uploaderName && (
-                    <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-white/60">
+                    <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm modal-stone-muted">
                       <Avatar
                         name={product.uploaderName}
                         imageUrl={product.uploaderImageUrl}
@@ -335,12 +335,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 </div>
                 <div className="flex items-center gap-2 text-sm text-yellow-300">
                   <Star className="h-4 w-4" fill="currentColor" />
-                  <span className="text-white/80">{formatRating(product.ratingAvg, product.ratingCount)}</span>
+                  <span className="modal-stone-muted">{formatRating(product.ratingAvg, product.ratingCount)}</span>
                 </div>
               </div>
 
               <div className="max-h-40 md:max-h-96 overflow-y-auto pr-1">
-                <p className="text-sm sm:text-base text-white/70 leading-relaxed">
+                <p className="text-sm sm:text-base modal-stone-muted leading-relaxed">
                   {product.description || 'A locally crafted product from Ilocos Sur.'}
                 </p>
               </div>

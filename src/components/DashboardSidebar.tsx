@@ -91,6 +91,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   }, [imgUrl, previewUrl]);
 
   const handleSelectAvatar = () => {
+    if (!isEditing) return;
     fileInputRef.current?.click();
   };
 
@@ -195,29 +196,34 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <button
               type="button"
               onClick={handleSelectAvatar}
-              className="h-40 w-40 rounded-full border border-border bg-card/60 overflow-hidden flex items-center justify-center relative group"
+              disabled={!isEditing}
+              className={`h-40 w-40 rounded-full border border-border bg-card/60 overflow-hidden flex items-center justify-center relative ${
+                isEditing ? 'group cursor-pointer' : 'cursor-default'
+              }`}
             >
               {displayAvatar ? (
                 <img src={displayAvatar} alt={displayName} className="h-full w-full object-cover" />
               ) : (
                 <span className="text-sm font-semibold text-muted-foreground">Profile</span>
               )}
-              <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                <svg
-                  className="h-6 w-6 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </span>
+              {isEditing && (
+                <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg
+                    className="h-6 w-6 text-white"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </span>
+              )}
             </button>
             <input
               ref={fileInputRef}
@@ -304,7 +310,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         </nav>
 
-        <div className="mt-6 border-t border-border pt-4 flex flex-col gap-3">
+        <div className="mt-1 border-t border-border pt-2 flex flex-col gap-3">
           <button
             type="button"
             className="rounded-full glass-button border border-border px-4 py-2 text-sm font-semibold transition-colors"

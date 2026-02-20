@@ -19,13 +19,13 @@ export const WeatherContainer: React.FC<WeatherContainerProps> = ({
   weather,
   WeatherIcon,
 }) => (
-  <div className="glass border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 lg:max-w-[280px]">
+  <div className="glass border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 lg:max-w-[280px] modal-stone-text">
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
-        <MapPin className="h-4 w-4 text-white/70" />
+        <MapPin className="h-4 w-4 modal-stone-muted" />
         <span>{title}</span>
       </div>
-      <span className="text-[10px] sm:text-xs text-white/60">{todayLabel}</span>
+      <span className="text-[10px] sm:text-xs modal-stone-muted">{todayLabel}</span>
     </div>
 
     <div className={`${detailsOpen ? 'block' : 'hidden'} lg:block`}>
@@ -34,28 +34,28 @@ export const WeatherContainer: React.FC<WeatherContainerProps> = ({
         {weatherLoading ? (
           <div>
             <div className="text-xl sm:text-4xl font-bold">--°C</div>
-            <div className="text-xs sm:text-sm text-white/60">Loading weather...</div>
+            <div className="text-xs sm:text-sm modal-stone-muted">Loading weather...</div>
           </div>
         ) : weather ? (
           <div>
             <div className="text-xl sm:text-4xl font-bold">{Math.round(weather.tempC)}°C</div>
-            <div className="text-xs sm:text-sm text-white/60">{weather.condition}</div>
+            <div className="text-xs sm:text-sm modal-stone-muted">{weather.condition}</div>
           </div>
         ) : (
           <div>
             <div className="text-xl sm:text-4xl font-bold">--°C</div>
-            <div className="text-xs sm:text-sm text-white/60">Weather unavailable</div>
+            <div className="text-xs sm:text-sm modal-stone-muted">Weather unavailable</div>
           </div>
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 text-xs sm:text-sm text-white/70">
+      <div className="mt-4 grid grid-cols-1 gap-3 text-xs sm:text-sm modal-stone-muted">
         <div className="flex items-center gap-1">
-          <Droplet className="h-4 w-4 sm:h-5 sm:w-5 text-white/70" />
+          <Droplet className="h-4 w-4 sm:h-5 sm:w-5 modal-stone-muted" />
           <span>Humidity {weather && weather.humidity != null ? `${Math.round(weather.humidity)}%` : '--'}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Wind className="h-4 w-4 sm:h-5 sm:w-5 text-white/70" />
+          <Wind className="h-4 w-4 sm:h-5 sm:w-5 modal-stone-muted" />
           <span>Wind {weather && weather.windKph != null ? `${Math.round(weather.windKph)} km/h` : '--'}</span>
         </div>
       </div>

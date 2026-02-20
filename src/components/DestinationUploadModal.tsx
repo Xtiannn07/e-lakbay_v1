@@ -170,7 +170,7 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({ 
       onClick={onClose}
     >
       <div
-        className="glass-secondary border border-white/20 rounded-2xl shadow-2xl p-6 w-full max-w-2xl text-white h-[85vh] md:h-[80vh] max-h-[85vh] md:max-h-[80vh] overflow-y-auto hide-scrollbar"
+        className="glass-secondary modal-stone-text border border-white/20 rounded-2xl p-6 w-full max-w-2xl h-[85vh] md:h-[80vh] max-h-[85vh] md:max-h-[80vh] overflow-y-auto hide-scrollbar"
         role="dialog"
         aria-modal="true"
         aria-labelledby="destination-upload-title"
@@ -179,11 +179,11 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({ 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-semibold" id="destination-upload-title">Destination Upload</h2>
-            <p className="text-sm text-white/60">Add new destinations with visuals.</p>
+            <p className="text-sm modal-stone-muted">Add new destinations with visuals.</p>
           </div>
           <button
             type="button"
-            className="text-white/70 hover:text-white text-2xl"
+            className="modal-stone-muted hover:opacity-80 text-2xl"
             onClick={onClose}
             aria-label="Close"
           >
@@ -192,48 +192,48 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({ 
         </div>
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-white/70">Destination name</label>
+            <label className="text-sm modal-stone-muted">Destination name</label>
             <input
               type="text"
               value={destinationName}
               onChange={(event) => setDestinationName(event.target.value)}
               placeholder="San Vicente Cove"
-              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
             />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-sm text-white/70">Location</label>
+            <label className="text-sm modal-stone-muted">Location</label>
             <LocationPickerMap onLocationConfirmed={setLocationData} hideIntro />
             {locationData && (
-              <p className="text-xs text-white/60">
+              <p className="text-xs modal-stone-muted">
                 Location: {locationData.barangay ?? 'Unknown'}, {locationData.municipality ?? 'Unknown'}
               </p>
             )}
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-sm text-white/70">Description</label>
+            <label className="text-sm modal-stone-muted">Description</label>
             <textarea
               rows={3}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Describe the destination..."
-              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
             />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-sm text-white/70">Image upload</label>
+            <label className="text-sm modal-stone-muted">Image upload</label>
             <input
               type="file"
               multiple
               accept="image/*"
               onChange={handleFilesChange}
-              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-white/20 file:px-3 file:py-1 file:text-xs file:text-white"
+              className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text file:mr-3 file:rounded-full file:border-0 file:bg-white/20 file:px-3 file:py-1 file:text-xs file:text-stone-700"
             />
-            <p className="text-xs text-white/50">{previewCountLabel}</p>
+            <p className="text-xs modal-stone-soft">{previewCountLabel}</p>
           </div>
           {previews.length > 0 && (
             <div className="sm:col-span-2">
-              <p className="text-xs text-white/60 mb-2">Preview</p>
+              <p className="text-xs modal-stone-muted mb-2">Preview</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {previews.map((src, index) => (
                   <div key={`${src}-${index}`} className="aspect-square rounded-lg overflow-hidden border border-white/10 bg-white/10">
@@ -251,7 +251,7 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({ 
           <div className="sm:col-span-2 flex justify-end gap-3">
             <button
               type="button"
-              className="text-sm text-white/70 hover:text-white"
+              className="text-sm modal-stone-muted hover:opacity-80"
               onClick={onClose}
             >
               Cancel

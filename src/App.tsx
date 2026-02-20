@@ -13,8 +13,8 @@ import AdminPage from './pages/AdminPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { SonnerGlobal } from './components/modern-ui/sonner';
 import Footer from './sections/footer';
-import { ThemeToggle } from './components/ThemeToggle';
-import loadingVideo from './assets/Construction_Animation.webm';
+import ComingSoonModal from './components/ui/coming_soon';
+import loadingVideo from './assets/Loading_chatbot.webm';
 
 const ProfileRoute: React.FC<{ onBackHome: () => void }> = ({ onBackHome }) => {
   const { profileId } = useParams();
@@ -49,6 +49,7 @@ const AppContent: React.FC = () => {
   const { user, profile, loading, signOut } = useAuth();
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
@@ -193,7 +194,7 @@ const AppContent: React.FC = () => {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
-        {location.pathname !== '/dashboard' && <Footer />}
+        {location.pathname !== '/dashboard' && <Footer onOpenComingSoon={() => setIsComingSoonOpen(true)} />}
         <GlobalModal onModeChange={setActive} />
       </div>
       <SonnerGlobal />
@@ -222,7 +223,9 @@ const AppContent: React.FC = () => {
           <path d="M5 12l7-7 7 7" />
         </svg>
       </button>
-      {location.pathname !== '/dashboard' && <ThemeToggle />}
+      {isComingSoonOpen && (
+        <ComingSoonModal isOpen={isComingSoonOpen} onClose={() => setIsComingSoonOpen(false)} />
+      )}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <video

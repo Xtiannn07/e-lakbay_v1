@@ -168,7 +168,6 @@ export const DashboardProductSection: React.FC<DashboardProductSectionProps> = (
                 ratingAvg={product.ratingAvg}
                 ratingCount={product.ratingCount}
                 location={product.location}
-                className="homepage-card-shadow"
                 showDescription
                 onRate={onRate ? () => onRate(product.name) : undefined}
               />

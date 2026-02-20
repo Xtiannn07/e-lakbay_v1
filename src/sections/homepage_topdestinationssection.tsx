@@ -203,7 +203,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                   location={destination.location}
                   imageClassName="aspect-square"
                   showMeta={false}
-                  className="homepage-card-shadow min-w-[90%] sm:min-w-[60%] lg:min-w-[35%] focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="min-w-[90%] sm:min-w-[60%] lg:min-w-[35%] focus:outline-none focus:ring-2 focus:ring-ring"
                   onProfileClick={onViewProfile}
                   onClick={() =>
                     setActiveDestination({

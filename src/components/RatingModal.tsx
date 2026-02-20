@@ -31,7 +31,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({ open, title, onClose, 
       onClick={onClose}
     >
       <div
-        className="glass-secondary border border-white/20 rounded-2xl shadow-2xl p-6 w-full max-w-lg text-white max-h-[85vh] md:max-h-none overflow-y-auto hide-scrollbar"
+        className="glass-secondary modal-stone-text border border-white/20 rounded-2xl p-6 w-full max-w-lg max-h-[85vh] md:max-h-none overflow-y-auto hide-scrollbar"
         role="dialog"
         aria-modal="true"
         aria-labelledby="rating-modal-title"
@@ -40,11 +40,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({ open, title, onClose, 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-semibold" id="rating-modal-title">{title}</h2>
-            <p className="text-sm text-white/60">Share your experience with a quick rating.</p>
+            <p className="text-sm modal-stone-muted">Share your experience with a quick rating.</p>
           </div>
           <button
             type="button"
-            className="text-white/70 hover:text-white text-2xl"
+            className="modal-stone-muted hover:opacity-80 text-2xl"
             onClick={onClose}
             aria-label="Close"
           >
@@ -58,7 +58,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({ open, title, onClose, 
               key={star}
               type="button"
               onClick={() => setRating(star)}
-              className={`transition-colors ${rating >= star ? 'text-yellow-300' : 'text-white/30'}`}
+              className={`transition-colors ${rating >= star ? 'text-yellow-300' : 'modal-stone-soft'}`}
               aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
             >
               <Star
@@ -70,20 +70,20 @@ export const RatingModal: React.FC<RatingModalProps> = ({ open, title, onClose, 
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-white/70">Comment</label>
+          <label className="text-sm modal-stone-muted">Comment</label>
           <textarea
             rows={4}
             placeholder="Share your thoughts..."
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+            className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
           />
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
-            className="text-sm text-white/70 hover:text-white"
+            className="text-sm modal-stone-muted hover:opacity-80"
             onClick={onClose}
           >
             Cancel

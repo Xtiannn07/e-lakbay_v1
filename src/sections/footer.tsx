@@ -1,8 +1,9 @@
 import { Facebook, Instagram, X, Github, Youtube } from "lucide-react";
-import { useEffect, useState } from 'react';
-import logoBlack from '../assets/e-lakbay_logo(black).svg';
 import logoWhite from '../assets/e-lakbay_logo(white).svg';
-import ComingSoonModal from '../components/ui/coming_soon';
+
+interface FooterProps {
+  onOpenComingSoon?: () => void;
+}
 
 const navLinks = [
   { label: "About", href: "#" },
@@ -22,24 +23,10 @@ const socials = [
   { icon: Youtube, label: "YouTube", href: "https://youtube.com" },
 ];
 
-export default function Footer() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const observer = new MutationObserver(() => {
-      setIsDark(root.classList.contains('dark'));
-    });
-
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    setIsDark(root.classList.contains('dark'));
-
-    return () => observer.disconnect();
-  }, []);
+export default function Footer({ onOpenComingSoon }: FooterProps) {
 
   return (
-    <footer className="bg-secondary text-secondary-foreground border-t border-border p-4 md:px-8">
+    <footer className="glass-card text-foreground border-t border-border p-4 md:px-8">
 
       {/* ── Upper Row: brand left, nav centered ──
           Stays as a row on tablet (md). Stacks to column only on mobile (sm and below). */}
@@ -47,7 +34,7 @@ export default function Footer() {
 
     {/* Brand */}
     <div className="flex flex-col items-center gap-1 shrink-0">
-      <img src={isDark ? logoWhite : logoBlack} alt="E-Lakbay" className="w-auto h-16" />
+      <img src={logoWhite} alt="E-Lakbay" className="w-auto h-16" />
         <span className="font-semibold text-sm tracking-wide">E-Lakbay</span>
     </div>
 
@@ -59,7 +46,7 @@ export default function Footer() {
         {navLinks.map((link) => (
         <button
             key={link.label}
-            onClick={() => setIsModalOpen(true)}
+            onClick={onOpenComingSoon}
             className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 whitespace-nowrap text-underline-offset-5 hover:underline"
         >
             {link.label}
@@ -95,10 +82,6 @@ export default function Footer() {
         </div>
 
       </div>
-
-      {isModalOpen && (
-        <ComingSoonModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      )}
     </footer>
   );
 }

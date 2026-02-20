@@ -262,7 +262,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
   const displayName = profile?.fullName || profile?.email || 'Traveler';
 
   return (
-    <main className="min-h-screen bg-background text-foreground pt-12 md:pt-20 pb-12 px-4 sm:px-6 lg:px-10">
+    <main className="min-h-screen text-foreground pt-12 md:pt-20 pb-12 px-4 sm:px-6 lg:px-10">
       <div className="max-w-6xl mx-auto">
         {onBackHome && (
           <div className="flex justify-start">
@@ -332,7 +332,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                     ratingAvg={destination.ratingAvg}
                     ratingCount={destination.ratingCount}
                     location={destination.location}
-                    className="homepage-card-shadow"
                     showDescription
                     enableModal
                     onRate={() => {
@@ -370,7 +369,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                     ratingAvg={product.ratingAvg}
                     ratingCount={product.ratingCount}
                     location={product.location}
-                    className="homepage-card-shadow"
                     showDescription
                     showMeta
                     onClick={() =>

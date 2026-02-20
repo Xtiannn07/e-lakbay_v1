@@ -23,7 +23,7 @@ export const HomepageSearchBar: React.FC<HomepageSearchBarProps> = ({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        'glass-secondary shadow-xl rounded-full flex items-center gap-3 px-4 sm:px-6 py-1.5 w-full max-w-xl text-foreground overflow-hidden',
+        'glass-secondary rounded-full flex items-center gap-3 px-4 sm:px-6 py-1.5 w-full max-w-xl text-foreground overflow-hidden',
         className
       )}
     >

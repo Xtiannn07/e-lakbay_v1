@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Profile } from '../components/AuthProvider';
 import { DashboardAnalyticsSection } from '../sections/dashboard_analyticssection';
@@ -27,7 +27,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ profile }) => {
   const battleCry = profile?.battle_cry || 'Ready for the next adventure.';
   const [isProductOpen, setIsProductOpen] = useState(false);
   const [isDestinationOpen, setIsDestinationOpen] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      const container = contentRef.current;
+      if (!container) return;
+
+      const canScroll = container.scrollHeight > container.clientHeight;
+      if (!canScroll) return;
+
+      container.scrollBy({ top: event.deltaY });
+      event.preventDefault();
+    };
+
+    section.addEventListener('wheel', handleWheel, { passive: false });
+    return () => section.removeEventListener('wheel', handleWheel);
+  }, []);
 
   const handleJumpToSection = (sectionId: string) => {
     const container = contentRef.current;
@@ -41,9 +61,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ profile }) => {
   };
 
   return (
-    <section className="h-screen bg-background text-foreground px-4 sm:px-6 lg:px-10 overflow-hidden">
-      <div className="max-w-7xl mx-auto h-full pt-12 md:pt-24 pb-12">
-        <div className="flex flex-col lg:flex-row gap-8 h-full">
+    <section ref={sectionRef} className="h-screen text-foreground px-2 overflow-y-hidden overflow-x-visible">
+      <div className="max-w-7xl mx-auto h-full pt-12 md:pt-24 pb-12 overflow-x-visible">
+        <div className="flex flex-col lg:flex-row gap-8 h-full lg:pl-3 overflow-x-visible">
           <motion.div className="shrink-0" {...sidebarMotion}>
             <DashboardSidebar
               displayName={displayName}
@@ -57,7 +77,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ profile }) => {
             />
           </motion.div>
 
-          <div ref={contentRef} className="flex-1 h-full overflow-y-auto hide-scrollbar">
+          <div ref={contentRef} className="flex-1 h-full overflow-y-auto overflow-x-visible hide-scrollbar pl-4 p-4">
             <DashboardAnalyticsSection displayName={displayName} />
             <DashboardProductSection userId={user?.id ?? profile?.id ?? null} />
             <DashboardDestinationSection userId={user?.id ?? profile?.id ?? null} />

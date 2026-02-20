@@ -19,12 +19,12 @@ export const DescriptionContainer: React.FC<DescriptionContainerProps> = ({
       <h3 className="text-base sm:text-lg font-semibold">{title}</h3>
       <div className="flex items-center gap-2 text-xs sm:text-sm text-yellow-300">
         <Star className="h-4 w-4 text-yellow-300" fill="currentColor" />
-        <span className="text-white/70">{ratingLabel}</span>
+        <span className="modal-stone-muted">{ratingLabel}</span>
       </div>
     </div>
 
-    <div className="max-h-28 sm:max-h-36 pr-1 overflow-y-auto hide-scrollbar">
-      <p className="text-xs sm:text-sm text-white/70 leading-relaxed">{description}</p>
+    <div className="max-h-28 sm:max-h-36 pr-1 overflow-y-auto">
+      <p className="text-xs sm:text-sm modal-stone-muted leading-relaxed">{description}</p>
     </div>
   </div>
 );

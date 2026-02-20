@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const shouldShowMeta = Boolean(meta) && showMeta && !uploaderName;
   const shouldShowUploader = Boolean(uploaderName) && showMeta;
   const shouldShowDescription = showDescription && Boolean(description);
-  const cardClassName = `rounded-bl-xl rounded-tr-xl glass-card ${className ?? ''}`;
+  const cardClassName = `rounded-bl-xl rounded-tr-xl glass-card-nonmodal ${className ?? ''}`;
   const cardImageClassName = `relative overflow-hidden rounded-bl-xl rounded-tr-xl ${imageClassName ?? 'aspect-square'}`;
 
   const content = (

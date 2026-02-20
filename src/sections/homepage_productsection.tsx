@@ -208,7 +208,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
                 location={product.location}
                 onProfileClick={onViewProfile}
                 imageClassName="aspect-[3/4]"
-                className="homepage-card-shadow rounded-bl-2xl rounded-tr-2xl focus:outline-none focus:ring-2 focus:ring-ring"
+                className="rounded-bl-2xl rounded-tr-2xl focus:outline-none focus:ring-2 focus:ring-ring"
                 onClick={() =>
                   setActiveProduct({
                     id: product.id,

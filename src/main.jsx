@@ -5,6 +5,9 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 
+// Force dark mode as default
+document.documentElement.classList.add('dark');
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

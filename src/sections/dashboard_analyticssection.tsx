@@ -38,7 +38,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
-              className="homepage-card-shadow rounded-2xl glass-card border border-border p-4"
+              className="rounded-2xl glass-card-nonmodal p-4"
               {...getItemMotion(index)}
             >
               <p className="text-sm text-muted-foreground">{stat.label}</p>
@@ -54,7 +54,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <motion.div
           id="visitor-trends"
-          className="homepage-card-shadow lg:col-span-2 rounded-2xl glass-card border border-border p-6"
+          className="lg:col-span-2 rounded-2xl glass-card-nonmodal p-6"
           {...getPanelMotion(0.08)}
         >
           <div className="flex items-center justify-between mb-4">
@@ -76,7 +76,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
 
         <motion.div
           id="top-destinations"
-          className="homepage-card-shadow rounded-2xl glass-card border border-border p-6"
+          className="rounded-2xl glass-card-nonmodal p-6"
           {...getPanelMotion(0.14)}
         >
           <h2 className="text-lg font-semibold mb-4">Top Destinations</h2>
