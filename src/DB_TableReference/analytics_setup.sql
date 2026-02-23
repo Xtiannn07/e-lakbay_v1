@@ -45,9 +45,14 @@ language plpgsql
 as $$
 declare
   owner_id text := nullif(coalesce(new.metadata ->> 'owner_id', ''), '');
+  user_role text := nullif(coalesce(new.metadata ->> 'user_role', ''), '');
   clean_path text := coalesce(new.page_path, '');
   profile_match text;
 begin
+  if new.user_id is not null and user_role <> 'tourist' then
+    return null;
+  end if;
+
   if clean_path like '/dashboard%' or clean_path like '/admin%' then
     return null;
   end if;

@@ -76,7 +76,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewPr
           animate: { opacity: 1, y: 0 },
           transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
         };
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const location = useLocation();
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
@@ -201,6 +201,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewPr
       scope: 'products',
       resultCount: visibleProducts.length,
       userId: user?.id ?? null,
+      userRole: profile?.role ?? null,
       pagePath: '/products',
       filters: { filter_name: 'search_query' },
     });
@@ -210,10 +211,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewPr
       filterName: 'search_query',
       filterValue: query,
       userId: user?.id ?? null,
+      userRole: profile?.role ?? null,
       pagePath: '/products',
       filters: { active_query: query },
     });
-  }, [isProductsPending, isProductsFetching, searchQuery, visibleProducts.length, user?.id]);
+  }, [isProductsPending, isProductsFetching, searchQuery, visibleProducts.length, user?.id, profile?.role]);
 
   return (
     <main className="min-h-screen text-foreground pt-12 md:pt-20 pb-12 px-4 sm:px-6 lg:px-10">
@@ -290,6 +292,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewPr
                         contentId: product.id,
                         ownerId: product.uploaderId ?? null,
                         userId: user?.id ?? null,
+                        userRole: profile?.role ?? null,
                         pagePath: '/products',
                       });
                       setActiveProduct({

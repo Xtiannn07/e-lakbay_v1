@@ -39,7 +39,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
   onViewMore,
   onViewProfile,
 }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [activeDestination, setActiveDestination] = useState<{
     id: string;
@@ -214,6 +214,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
                         contentId: destination.id,
                         ownerId: destination.postedById ?? null,
                         userId: user?.id ?? null,
+                        userRole: profile?.role ?? null,
                         pagePath: '/',
                       });
                       setActiveDestination({

@@ -85,15 +85,19 @@ type ActiveProduct = {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome }) => {
   const shouldReduceMotion = useReducedMotion();
-  const { user } = useAuth();
+  const { user, profile: authProfile } = useAuth();
   const queryClient = useQueryClient();
   const [destinationRatingTarget, setDestinationRatingTarget] = useState<{ id: string; name: string } | null>(null);
   const [productRatingTarget, setProductRatingTarget] = useState<{ id: string; name: string } | null>(null);
   const [activeProduct, setActiveProduct] = useState<ActiveProduct | null>(null);
 
   useEffect(() => {
-    void trackProfileView({ profileId, userId: user?.id ?? null });
-  }, [profileId, user?.id]);
+    void trackProfileView({
+      profileId,
+      userId: user?.id ?? null,
+      userRole: authProfile?.role ?? null,
+    });
+  }, [profileId, user?.id, authProfile?.role]);
   
   const getItemMotion = (index: number) =>
     shouldReduceMotion
@@ -103,7 +107,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
           animate: { opacity: 1, y: 0 },
           transition: { duration: 0.35, ease: easeOut, delay: index * 0.04 },
         };
-  const { data: profile, isPending: isProfilePending, isFetching: isProfileFetching } = useQuery({
+  const { data: profileInfo, isPending: isProfilePending, isFetching: isProfileFetching } = useQuery({
     queryKey: ['profiles', profileId],
     queryFn: async () => {
       try {
@@ -266,7 +270,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
   const showDestinationSkeletons =
     isDestinationsPending || (isDestinationsFetching && destinations.length === 0);
   const showProductSkeletons = isProductsPending || (isProductsFetching && products.length === 0);
-  const displayName = profile?.fullName || profile?.email || 'Traveler';
+  const displayName = profileInfo?.fullName || profileInfo?.email || 'Traveler';
 
   return (
     <main className="min-h-screen text-foreground pt-12 md:pt-20 pb-12 px-4 sm:px-6 lg:px-10">
@@ -300,15 +304,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
           ) : (
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border border-border bg-card/60 overflow-hidden flex items-center justify-center text-lg font-semibold">
-                {profile?.imageUrl ? (
-                  <img src={profile.imageUrl} alt={displayName} className="h-full w-full object-cover" />
+                {profileInfo?.imageUrl ? (
+                  <img src={profileInfo.imageUrl} alt={displayName} className="h-full w-full object-cover" />
                 ) : (
                   displayName.charAt(0).toUpperCase()
                 )}
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold">{displayName}</h1>
-                {profile?.battleCry && <p className="text-sm text-muted-foreground mt-1">{profile.battleCry}</p>}
+                {profileInfo?.battleCry && <p className="text-sm text-muted-foreground mt-1">{profileInfo.battleCry}</p>}
               </div>
             </div>
           )}
@@ -334,7 +338,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                     imageUrl={destination.imageUrl ?? ''}
                     imageUrls={destination.imageUrls}
                     postedBy={displayName}
-                    postedByImageUrl={profile?.imageUrl ?? null}
+                    postedByImageUrl={profileInfo?.imageUrl ?? null}
                     postedById={profileId}
                     ratingAvg={destination.ratingAvg}
                     ratingCount={destination.ratingCount}
@@ -371,7 +375,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
                     description={product.description ?? ''}
                     imageUrl={product.imageUrl ?? ''}
                     uploaderName={displayName}
-                    uploaderImageUrl={profile?.imageUrl ?? null}
+                    uploaderImageUrl={profileInfo?.imageUrl ?? null}
                     uploaderId={profileId}
                     ratingAvg={product.ratingAvg}
                     ratingCount={product.ratingCount}
@@ -436,7 +440,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profileId, onBackHome 
             ? {
                 ...activeProduct,
                 uploaderName: displayName,
-                uploaderImageUrl: profile?.imageUrl ?? null,
+                uploaderImageUrl: profileInfo?.imageUrl ?? null,
                 uploaderId: profileId,
               }
             : null

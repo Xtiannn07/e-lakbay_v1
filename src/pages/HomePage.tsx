@@ -5,7 +5,6 @@ import { HomepageHeroSection } from '../sections/homepage_herosection';
 import { HomepageMunicipalitiesSection } from '../sections/homepage_municipalitiessection';
 import { HomepageTopDestinationsSection } from '../sections/homepage_topdestinationssection';
 import { HomepageProductSection } from '../sections/homepage_productsection';
-import { trackSearchPerformed } from '../lib/analytics';
 
 interface HomePageProps {
   onViewDestinations?: () => void;
@@ -28,14 +27,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onViewDestinations, onViewPr
       <HomepageHeroSection
         onSearch={(value) => {
           const query = value.trim();
-          if (query) {
-            void trackSearchPerformed({
-              query,
-              scope: 'products',
-              pagePath: '/',
-              filters: { entry_point: 'hero_search' },
-            });
-          }
           navigate(query ? `/products?q=${encodeURIComponent(query)}` : '/products');
         }}
       />

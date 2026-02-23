@@ -55,7 +55,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
           animate: { opacity: 1, y: 0 },
           transition: { duration: 0.35, ease: 'easeOut', delay: index * 0.04 },
         };
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const location = useLocation();
   const [ratingTarget, setRatingTarget] = useState<{ id: string; name: string } | null>(null);
@@ -182,6 +182,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
       scope: 'destinations',
       resultCount: visibleDestinations.length,
       userId: user?.id ?? null,
+      userRole: profile?.role ?? null,
       pagePath: '/destinations',
       filters: { filter_name: 'search_query' },
     });
@@ -191,10 +192,11 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
       filterName: 'search_query',
       filterValue: query,
       userId: user?.id ?? null,
+      userRole: profile?.role ?? null,
       pagePath: '/destinations',
       filters: { active_query: query },
     });
-  }, [isDestinationsPending, isDestinationsFetching, searchQuery, visibleDestinations.length, user?.id]);
+  }, [isDestinationsPending, isDestinationsFetching, searchQuery, visibleDestinations.length, user?.id, profile?.role]);
 
   return (
     <main className="min-h-screen text-foreground pt-12 md:pt-20 pb-12 px-4 sm:px-6 lg:px-10">
@@ -274,6 +276,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
                         contentId: destination.id,
                         ownerId: destination.postedById ?? null,
                         userId: user?.id ?? null,
+                        userRole: profile?.role ?? null,
                         pagePath: '/destinations',
                       });
                     }}

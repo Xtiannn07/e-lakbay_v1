@@ -15,6 +15,7 @@ import { SonnerGlobal } from './components/modern-ui/sonner';
 import Footer from './sections/footer';
 import ComingSoonModal from './components/ui/coming_soon';
 import loadingVideo from './assets/Loading_chatbot.webm';
+import { initializeAnalyticsSession } from './lib/analytics';
 
 const ProfileRoute: React.FC<{ onBackHome: () => void }> = ({ onBackHome }) => {
   const { profileId } = useParams();
@@ -61,6 +62,13 @@ const AppContent: React.FC = () => {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     });
   }, [location.pathname]);
+
+  useEffect(() => {
+    initializeAnalyticsSession({
+      userId: user?.id ?? null,
+      userRole: profile?.role ?? null,
+    });
+  }, [user?.id, profile?.role]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

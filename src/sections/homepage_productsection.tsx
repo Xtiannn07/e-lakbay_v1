@@ -39,7 +39,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
   onViewProfile,
   onViewProducts,
 }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [activeProduct, setActiveProduct] = useState<{
     id: string;
@@ -218,6 +218,7 @@ export const HomepageProductSection: React.FC<HomepageProductSectionProps> = ({
                       contentId: product.id,
                       ownerId: product.uploaderId ?? null,
                       userId: user?.id ?? null,
+                      userRole: profile?.role ?? null,
                       pagePath: '/',
                     });
                     setActiveProduct({
