@@ -1,6 +1,5 @@
 create table public.products (
   id uuid not null default gen_random_uuid (),
-  destination_name text not null,
   product_name text not null,
   description text null,
   image_url text null,

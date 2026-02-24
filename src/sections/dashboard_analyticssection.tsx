@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Button } from '../components/ui/button';
 import { Calendar } from '../components/ui/calendar';
 import { Skeleton } from '../components/ui/skeleton';
+import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { DateRange } from 'react-day-picker';
 
 type CountItem = {
@@ -12,15 +13,9 @@ type CountItem = {
   count: number;
 };
 
-type SourceMediumItem = {
-  source: string;
-  medium: string;
-  count: number;
-};
-
-type LandingItem = {
-  path: string;
-  count: number;
+type LandingVisitItem = {
+  label: string;
+  sessions: number;
 };
 
 type RatedItem = {
@@ -32,22 +27,20 @@ type RatedItem = {
 
 type SearchDiscoveryAnalytics = {
   search_volume: number;
-  no_result_searches: number;
   top_destinations: CountItem[];
   filter_usage: CountItem[];
 };
 
 type TrafficAcquisitionAnalytics = {
   sessions: number;
-  users: number;
-  source_medium: SourceMediumItem[];
-  top_landing_pages: LandingItem[];
+  top_landing_pages: LandingVisitItem[];
   top_rated_destinations: RatedItem[];
   top_rated_products: RatedItem[];
 };
 
 interface DashboardAnalyticsSectionProps {
   displayName: string;
+  userId?: string | null;
 }
 
 type DateFilterPreset = '7' | '14' | '30' | 'custom';
@@ -68,7 +61,7 @@ const renderListSkeleton = (count: number) =>
     </li>
   ));
 
-export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps> = ({ displayName }) => {
+export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps> = ({ displayName, userId }) => {
   const shouldReduceMotion = useReducedMotion();
   const [datePreset, setDatePreset] = React.useState<DateFilterPreset>('30');
   const [customRangeDraft, setCustomRangeDraft] = React.useState<DateRange | undefined>();
@@ -80,7 +73,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
   const selectedDays = datePreset === 'custom' ? null : Number(datePreset);
   const customStartDate = datePreset === 'custom' ? formatDateParam(customRangeApplied?.from) : null;
   const customEndDate = datePreset === 'custom' ? formatDateParam(customRangeApplied?.to) : null;
-  const shouldFetchAnalytics = datePreset !== 'custom' || hasAppliedCustomRange;
+  const shouldFetchAnalytics = Boolean(userId) && (datePreset !== 'custom' || hasAppliedCustomRange);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -100,7 +93,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
   }, []);
 
   const { data: searchDiscoveryData, isPending: isSearchDiscoveryPending } = useQuery({
-    queryKey: ['analytics', 'search-discovery', selectedDays, customStartDate, customEndDate],
+    queryKey: ['analytics', 'search-discovery', userId ?? 'anonymous', selectedDays, customStartDate, customEndDate],
     enabled: shouldFetchAnalytics,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_search_discovery_analytics', {
@@ -111,7 +104,6 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
       if (error) throw error;
       return (data ?? {
         search_volume: 0,
-        no_result_searches: 0,
         top_destinations: [],
         filter_usage: [],
       }) as SearchDiscoveryAnalytics;
@@ -119,7 +111,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
   });
 
   const { data: trafficData, isPending: isTrafficPending } = useQuery({
-    queryKey: ['analytics', 'traffic-acquisition', selectedDays, customStartDate, customEndDate],
+    queryKey: ['analytics', 'traffic-acquisition', userId ?? 'anonymous', selectedDays, customStartDate, customEndDate],
     enabled: shouldFetchAnalytics,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_traffic_acquisition_analytics', {
@@ -130,8 +122,6 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
       if (error) throw error;
       return (data ?? {
         sessions: 0,
-        users: 0,
-        source_medium: [],
         top_landing_pages: [],
         top_rated_destinations: [],
         top_rated_products: [],
@@ -140,9 +130,9 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
   });
 
   const searchVolume = searchDiscoveryData?.search_volume ?? 0;
-  const noResultSearches = searchDiscoveryData?.no_result_searches ?? 0;
   const sessions = trafficData?.sessions ?? 0;
-  const users = trafficData?.users ?? 0;
+  const topLandingPages = (trafficData?.top_landing_pages ?? []).slice(0, 11);
+  const maxLandingSessions = topLandingPages.reduce((max, item) => Math.max(max, item.sessions), 0);
   const isLoading = isSearchDiscoveryPending || isTrafficPending;
 
   const getItemMotion = (index: number) =>
@@ -193,13 +183,11 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
         </div>
       </div>
 
-      <div id="key-metrics" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="key-metrics" className="grid gap-4 sm:grid-cols-2">
         {
           [
             { label: 'Sessions', value: sessions.toLocaleString() },
-            { label: 'Users', value: users.toLocaleString() },
             { label: 'Search Volume', value: searchVolume.toLocaleString() },
-            { label: 'No-Result Searches', value: noResultSearches.toLocaleString() },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -222,33 +210,49 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
           {...getPanelMotion(0.08)}
         >
           <h2 className="text-lg font-semibold mb-4">Traffic & Acquisition</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="text-sm text-muted-foreground mb-3">Top Source / Medium</h3>
-              <ul className="space-y-2">
-                {isLoading
-                  ? renderListSkeleton(6)
-                  : (trafficData?.source_medium ?? []).slice(0, 6).map((item) => (
-                  <li key={`${item.source}-${item.medium}`} className="flex items-center justify-between text-sm">
-                    <span>{item.source} / {item.medium}</span>
-                    <span className="text-muted-foreground">{item.count}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm text-muted-foreground mb-3">Top Landing Pages</h3>
-              <ul className="space-y-2">
-                {isLoading
-                  ? renderListSkeleton(6)
-                  : (trafficData?.top_landing_pages ?? []).slice(0, 6).map((item) => (
-                  <li key={item.path} className="flex items-center justify-between text-sm gap-3">
-                    <span className="truncate">{item.path}</span>
-                    <span className="text-muted-foreground shrink-0">{item.count}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <h3 className="text-sm text-muted-foreground mb-4">Most Visits (Top 10 + Others)</h3>
+          <div className="space-y-3">
+            {isLoading ? (
+              <ul className="space-y-3">{renderListSkeleton(8)}</ul>
+            ) : topLandingPages.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No traffic data available yet.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={topLandingPages}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 200, bottom: 5 }}
+                >
+                  <XAxis type="number" />
+                  <YAxis
+                    dataKey="label"
+                    type="category"
+                    width={190}
+                    tick={{ fontSize: 12 }}
+                    interval={0}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(20, 184, 166, 0.1)' }}
+                    formatter={(value) => value}
+                    labelFormatter={(label) => `${label}`}
+                    contentStyle={{
+                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                      border: '1px solid rgba(20, 184, 166, 0.3)',
+                      borderRadius: '6px',
+                      color: '#fff',
+                    }}
+                  />
+                  <Bar
+                    dataKey="sessions"
+                    fill={(entry) => {
+                      if (entry.label === 'Others') return '#cbd5e1';
+                      return '#14b8a6';
+                    }}
+                    radius={[0, 8, 8, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </motion.div>
 

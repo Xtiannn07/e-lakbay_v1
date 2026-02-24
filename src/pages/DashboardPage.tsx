@@ -101,7 +101,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ profile }) => {
           </motion.div>
 
           <div ref={contentRef} className="flex-1 h-full overflow-y-auto overflow-x-visible hide-scrollbar pl-4 p-4">
-            <DashboardAnalyticsSection displayName={displayName} />
+            <DashboardAnalyticsSection
+              displayName={displayName}
+              userId={user?.id ?? profile?.id ?? null}
+            />
             <DashboardProductSection
               userId={user?.id ?? profile?.id ?? null}
               onOpenProduct={(product) => {

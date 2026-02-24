@@ -174,6 +174,7 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({
         ? [...fallbackImageUrls, ...(await uploadImages(files, `products/${productName.trim()}`))]
         : fallbackImageUrls;
       const basePayload = {
+        destination_name: locationData.address || `${locationData.barangay}, ${locationData.municipality}`,
         product_name: productName.trim(),
         description: description.trim() || null,
         image_url: imageUrls[0] ?? null,

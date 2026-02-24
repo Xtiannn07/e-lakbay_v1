@@ -1,0 +1,57 @@
+create table public.analytics_events (
+  id uuid not null default gen_random_uuid (),
+  created_at timestamp with time zone not null default now(),
+  session_id uuid not null,
+  user_id uuid null,
+  event_name text not null,
+  page_path text null,
+  source text null,
+  medium text null,
+  landing_path text null,
+  search_query text null,
+  search_scope text null,
+  search_result_count integer null,
+  filters jsonb not null default '{}'::jsonb,
+  metadata jsonb not null default '{}'::jsonb,
+  destination_id uuid null,
+  product_id uuid null,
+  constraint analytics_events_pkey primary key (id),
+  constraint analytics_events_destination_id_fkey foreign KEY (destination_id) references destinations (id) on delete set null,
+  constraint analytics_events_product_id_fkey foreign KEY (product_id) references products (id) on delete set null,
+  constraint analytics_events_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete set null,
+  constraint analytics_events_event_name_check check (
+    (
+      event_name = any (
+        array[
+          'page_view'::text,
+          'search_performed'::text,
+          'filter_used'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists analytics_events_created_at_idx on public.analytics_events using btree (created_at desc) TABLESPACE pg_default;
+
+create index IF not exists analytics_events_event_name_created_idx on public.analytics_events using btree (event_name, created_at desc) TABLESPACE pg_default;
+
+create index IF not exists analytics_events_session_idx on public.analytics_events using btree (session_id) TABLESPACE pg_default;
+
+create index IF not exists analytics_events_page_path_idx on public.analytics_events using btree (page_path) TABLESPACE pg_default;
+
+create index IF not exists analytics_events_search_query_idx on public.analytics_events using btree (search_query) TABLESPACE pg_default
+where
+  (search_query is not null);
+
+create index IF not exists analytics_events_destination_idx on public.analytics_events using btree (destination_id) TABLESPACE pg_default;
+
+create index IF not exists analytics_events_product_idx on public.analytics_events using btree (product_id) TABLESPACE pg_default;
+
+create trigger analytics_events_guard_trigger BEFORE INSERT on analytics_events for EACH row
+execute FUNCTION reject_owner_analytics ();
+
+create trigger analytics_events_normalize_trigger BEFORE INSERT
+or
+update on analytics_events for EACH row
+execute FUNCTION normalize_analytics_event ();

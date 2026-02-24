@@ -119,41 +119,6 @@ function getLandingPath(currentPath: string): string {
   return currentPath;
 }
 
-function getSourceAndMedium() {
-  if (typeof window === 'undefined') {
-    return { source: 'direct', medium: 'none' };
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const utmSource = params.get('utm_source')?.trim();
-  const utmMedium = params.get('utm_medium')?.trim();
-
-  if (utmSource || utmMedium) {
-    return {
-      source: utmSource || 'campaign',
-      medium: utmMedium || 'unknown',
-    };
-  }
-
-  const referrer = document.referrer;
-  if (!referrer) return { source: 'direct', medium: 'none' };
-
-  try {
-    const referrerHost = new URL(referrer).hostname;
-    const currentHost = window.location.hostname;
-    if (!referrerHost || referrerHost === currentHost) {
-      return { source: 'direct', medium: 'none' };
-    }
-
-    return {
-      source: referrerHost,
-      medium: 'referral',
-    };
-  } catch {
-    return { source: 'direct', medium: 'none' };
-  }
-}
-
 async function insertEvent(payload: Record<string, unknown>) {
   const { error } = await supabase.from('analytics_events').insert(payload);
   if (error) {
@@ -178,8 +143,7 @@ export async function trackPageView({ userId, userRole, pagePath }: BaseAnalytic
   if (!shouldTrackPageView(path, userId)) return;
   if (!shouldTrackByRole(userId, userRole)) return;
   const landingPath = getLandingPath(path);
-  const { source, medium } = getSourceAndMedium();
-  const eventKey = `${path}|${source}|${medium}`;
+  const eventKey = path;
   if (lastPageViewEventKey === eventKey) return;
   lastPageViewEventKey = eventKey;
 
@@ -188,8 +152,6 @@ export async function trackPageView({ userId, userRole, pagePath }: BaseAnalytic
     user_id: userId ?? null,
     event_name: 'page_view',
     page_path: path,
-    source,
-    medium,
     landing_path: landingPath,
     metadata: buildMetadata(userRole),
   });
