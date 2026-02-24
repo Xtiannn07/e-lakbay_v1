@@ -55,3 +55,8 @@ create trigger analytics_events_normalize_trigger BEFORE INSERT
 or
 update on analytics_events for EACH row
 execute FUNCTION normalize_analytics_event ();
+
+create trigger analytics_events_refs_trigger BEFORE INSERT
+or
+update on analytics_events for EACH row
+execute FUNCTION populate_analytics_event_refs ();
