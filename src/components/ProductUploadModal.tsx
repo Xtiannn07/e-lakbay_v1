@@ -150,8 +150,8 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({
       return;
     }
 
-    if (!locationData?.municipality || !locationData?.barangay) {
-      setError('Please select a municipality and barangay.');
+    if (!locationData?.municipality) {
+      setError('Please select a municipality.');
       return;
     }
 
@@ -287,30 +287,42 @@ export const ProductUploadModal: React.FC<ProductUploadModalProps> = ({
         </div>
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
-            <label className="text-sm modal-stone-muted">Product name</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm modal-stone-muted">Product name</label>
+              <span className={`text-xs ${productName.length > 64 ? 'text-red-400' : 'modal-stone-soft'}`}>
+                {productName.length}/64
+              </span>
+            </div>
             <input
               type="text"
               value={productName}
-              onChange={(event) => setProductName(event.target.value)}
+              onChange={(event) => setProductName(event.target.value.slice(0, 64))}
+              maxLength={64}
               placeholder="Ilocos Souvenir Bundle"
               className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
             />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
             <label className="text-sm modal-stone-muted">Location</label>
-            <LocationPickerMap onLocationConfirmed={setLocationData} initialLocation={locationData} hideIntro defaultPinMapOpen={false} />
+            <LocationPickerMap onLocationConfirmed={setLocationData} initialLocation={locationData} hideIntro defaultPinMapOpen={false} showBarangay={false} />
             {locationData && (
               <p className="text-xs modal-stone-muted">
-                Location: {locationData.barangay ?? 'Unknown'}, {locationData.municipality ?? 'Unknown'}
+                Location: {locationData.municipality ?? 'Unknown'}
               </p>
             )}
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-sm modal-stone-muted">Description</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm modal-stone-muted">Description</label>
+              <span className={`text-xs ${description.length > 2200 ? 'text-red-400' : 'modal-stone-soft'}`}>
+                {description.length}/2,200
+              </span>
+            </div>
             <textarea
               rows={3}
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) => setDescription(event.target.value.slice(0, 2200))}
+              maxLength={2200}
               placeholder="Describe the product..."
               className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
             />

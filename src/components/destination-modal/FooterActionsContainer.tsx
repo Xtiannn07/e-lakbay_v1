@@ -15,7 +15,7 @@ export const FooterActionsContainer: React.FC<FooterActionsContainerProps> = ({
   detailsOpen,
   onCloseDetails,
 }) => (
-  <div className="pt-2 border-t border-white/10 modal-stone-text">
+  <div className="relative z-40 pt-2 border-t border-white/10 modal-stone-text">
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
       {onRate ? (
         <button

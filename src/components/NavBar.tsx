@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from './modern-ui/button';
 import { cn } from '../lib/utils';
@@ -31,6 +31,37 @@ export const NavBar: React.FC<NavBarProps> = ({
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Close mobile menu on scroll or click outside
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleScroll = () => {
+      setIsMenuOpen(false);
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const displayName = useMemo(() => {
     return profile?.full_name || profile?.email || 'User';
@@ -55,7 +86,7 @@ export const NavBar: React.FC<NavBarProps> = ({
   const activeLinkClass = 'font-semibold underline underline-offset-4 text-foreground';
 
   return (
-    <nav className="absolute top-0 left-0 z-20 w-full flex items-center justify-between px-4 py-1 md:px-8 md:py-4 text-foreground">
+    <nav className="absolute top-0 left-0 z-[60] w-full flex items-center justify-between px-4 py-1 md:px-8 md:py-4 text-foreground">
       {/* Logo */}
       <button type="button" className="select-none" onClick={onHome} aria-label="Go to homepage">
         <img 
@@ -126,6 +157,7 @@ export const NavBar: React.FC<NavBarProps> = ({
       </div>
 
       <button
+        ref={menuButtonRef}
         type="button"
         className="md:hidden inline-flex items-center justify-center rounded-full p-2 text-foreground/90 hover:text-foreground hover:bg-foreground/10 transition-colors"
         aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
@@ -146,6 +178,7 @@ export const NavBar: React.FC<NavBarProps> = ({
       </button>
 
       <div
+        ref={mobileMenuRef}
         className={cn(
           'md:hidden absolute left-4 right-4 mt-52 rounded-2xl glass-secondary border border-white/20 overflow-hidden transition-all',
           isMenuOpen ? 'opacity-100 translate-y-0' : 'pointer-events-none opacity-0 -translate-y-2'

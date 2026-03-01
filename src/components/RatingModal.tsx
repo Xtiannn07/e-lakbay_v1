@@ -70,12 +70,18 @@ export const RatingModal: React.FC<RatingModalProps> = ({ open, title, onClose, 
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm modal-stone-muted">Comment</label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm modal-stone-muted">Comment</label>
+            <span className={`text-xs ${comment.length > 200 ? 'text-red-400' : 'modal-stone-soft'}`}>
+              {comment.length}/200
+            </span>
+          </div>
           <textarea
             rows={4}
             placeholder="Share your thoughts..."
             value={comment}
-            onChange={(event) => setComment(event.target.value)}
+            onChange={(event) => setComment(event.target.value.slice(0, 200))}
+            maxLength={200}
             className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
           />
         </div>

@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { HomePage } from './pages/HomePage';
 import { DestinationsPage } from './pages/DestinationsPage';
 import { ProductsPage } from './pages/ProductsPage';
+import { SearchResultsPage } from './pages/SearchResultsPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -185,6 +186,15 @@ const AppContent: React.FC = () => {
               path="/products"
               element={
                 <ProductsPage
+                  onBackHome={() => navigate('/')}
+                  onViewProfile={handleViewProfile}
+                />
+              }
+            />
+            <Route
+              path="/search"
+              element={
+                <SearchResultsPage
                   onBackHome={() => navigate('/')}
                   onViewProfile={handleViewProfile}
                 />

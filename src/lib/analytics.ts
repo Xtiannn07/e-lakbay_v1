@@ -16,6 +16,9 @@ type SearchPayload = BaseAnalyticsPayload & {
   scope: 'products' | 'destinations' | 'global';
   resultCount?: number | null;
   filters?: Record<string, unknown>;
+  destinationId?: string | null;
+  productId?: string | null;
+  ownerId?: string | null;
 };
 
 type FilterPayload = BaseAnalyticsPayload & {
@@ -84,10 +87,14 @@ function shouldTrackAnonymous() {
 
 function shouldTrackByRole(userId?: string | null, userRole?: string | null) {
   if (!userId) {
-    return shouldTrackAnonymous();
+    const result = shouldTrackAnonymous();
+    console.log('[Analytics] shouldTrackByRole - anonymous user, shouldTrackAnonymous:', result);
+    return result;
   }
 
-  return userRole === 'tourist';
+  const result = userRole === 'tourist';
+  console.log('[Analytics] shouldTrackByRole - logged in user, role:', userRole, 'result:', result);
+  return result;
 }
 
 function buildMetadata(userRole?: string | null, extra?: Record<string, unknown>) {
@@ -125,9 +132,12 @@ function getLandingPath(currentPath: string): string {
 }
 
 async function insertEvent(payload: Record<string, unknown>) {
+  console.log('[Analytics] Inserting event:', payload);
   const { error } = await supabase.from('analytics_events').insert(payload);
   if (error) {
-    console.error('Failed to insert analytics event:', error);
+    console.error('[Analytics] Failed to insert analytics event:', error);
+  } else {
+    console.log('[Analytics] Event inserted successfully');
   }
 }
 
@@ -170,13 +180,30 @@ export async function trackSearchPerformed({
   userRole,
   pagePath,
   filters,
+  destinationId,
+  productId,
+  ownerId,
 }: SearchPayload) {
+  console.log('[Analytics] trackSearchPerformed called:', { query, scope, userId, userRole, destinationId, productId, ownerId });
   const normalizedQuery = query.trim();
-  if (!normalizedQuery) return;
-  if (!shouldTrackByRole(userId, userRole)) return;
-  const eventKey = `${scope}|${normalizedQuery.toLowerCase()}|${resultCount ?? ''}|${pagePath ?? ''}`;
-  if (lastSearchEventKey === eventKey) return;
+  if (!normalizedQuery) {
+    console.log('[Analytics] Skipping: empty query');
+    return;
+  }
+  if (!shouldTrackByRole(userId, userRole)) {
+    console.log('[Analytics] Skipping: shouldTrackByRole returned false for role:', userRole);
+    return;
+  }
+  const eventKey = `${scope}|${normalizedQuery.toLowerCase()}|${resultCount ?? ''}|${pagePath ?? ''}|${destinationId ?? ''}|${productId ?? ''}`;
+  if (lastSearchEventKey === eventKey) {
+    console.log('[Analytics] Skipping: duplicate event key');
+    return;
+  }
   lastSearchEventKey = eventKey;
+
+  // Determine content_id and content_type for metadata constraint
+  const contentId = destinationId ?? productId ?? null;
+  const contentType = destinationId ? 'destination' : productId ? 'product' : null;
 
   await insertEvent({
     session_id: getSessionId(),
@@ -187,7 +214,13 @@ export async function trackSearchPerformed({
     search_scope: scope,
     search_result_count: typeof resultCount === 'number' ? resultCount : null,
     filters: filters ?? {},
-    metadata: buildMetadata(userRole),
+    metadata: buildMetadata(userRole, {
+      owner_id: ownerId ?? null,
+      content_id: contentId,
+      content_type: contentType,
+    }),
+    destination_id: isUuid(destinationId) ? destinationId : null,
+    product_id: isUuid(productId) ? productId : null,
   });
 }
 

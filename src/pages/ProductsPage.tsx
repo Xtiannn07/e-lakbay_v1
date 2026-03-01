@@ -191,31 +191,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onBackHome, onViewPr
     setSearchQuery(query);
   }, [location.search]);
 
-  useEffect(() => {
-    if (isProductsPending || isProductsFetching) return;
-    const query = searchQuery.trim();
-    if (!query) return;
-
-    void trackSearchPerformed({
-      query,
-      scope: 'products',
-      resultCount: visibleProducts.length,
-      userId: user?.id ?? null,
-      userRole: profile?.role ?? null,
-      pagePath: '/products',
-      filters: { filter_name: 'search_query' },
-    });
-
-    void trackFilterUsage({
-      scope: 'products',
-      filterName: 'search_query',
-      filterValue: query,
-      userId: user?.id ?? null,
-      userRole: profile?.role ?? null,
-      pagePath: '/products',
-      filters: { active_query: query },
-    });
-  }, [isProductsPending, isProductsFetching, searchQuery, visibleProducts.length, user?.id, profile?.role]);
+  // Removed analytics firing on search input change. Analytics now only fires on suggestion click in SearchSuggest.
 
   return (
     <main className="min-h-screen text-foreground pt-12 md:pt-20 pb-12 px-4 sm:px-6 lg:px-10">

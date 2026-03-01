@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { useAuth } from './AuthProvider';
+import { CommentsSlider, CommentsToggleButton } from './CommentsSlider';
 import { DestinationUploadModal } from './DestinationUploadModal';
-import ViewRoutesModal from './ViewRoutesModal';
+import { RouteMapView } from './RouteMapView';
 import { DescriptionContainer } from './destination-modal/DescriptionContainer';
 import { FooterActionsContainer } from './destination-modal/FooterActionsContainer';
 import { ImageGalleryContainer } from './destination-modal/ImageGalleryContainer';
@@ -131,6 +132,7 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   const [weatherError, setWeatherError] = useState<string | null>(null);
   const [showRoutes, setShowRoutes] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const municipalityName = location?.municipality?.trim() ?? '';
   const hasLocation = Boolean(location && typeof location.lat === 'number' && typeof location.lng === 'number');
   const swipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -418,9 +420,9 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   const footerActions = (
     <FooterActionsContainer
       onRate={onRate}
-      hasLocation={hasLocation}
+      hasLocation={Boolean(location)}
       onViewRoutes={() => {
-        if (!hasLocation) return;
+        if (!location) return;
         setShowRoutes(true);
       }}
       detailsOpen={detailsOpen}
@@ -429,7 +431,14 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
   );
 
   return (
-    <article className={`glass-secondary modal-stone-text border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col w-full overflow-hidden ${isCard ? 'h-[60vh]' : 'h-[65vh] sm:h-[55vh] md:h-[75vh] lg:h-[65vh]'}`}>
+    <article className={`relative glass-secondary modal-stone-text border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col w-full overflow-hidden ${isCard ? 'h-[60vh]' : 'h-[65vh] sm:h-[55vh] md:h-[75vh] lg:h-[65vh]'}`}>
+      {/* Comments toggle button on right edge - only show when not a card and slider is closed */}
+      {!isCard && id && !showComments && (
+        <CommentsToggleButton
+          onClick={() => setShowComments(true)}
+          commentCount={ratingCount}
+        />
+      )}
       <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar flex flex-col gap-2">
         {headerSection}
         {mediaAndWeatherSection}
@@ -438,7 +447,11 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
       </div>
       {footerActions}
       {showRoutes && location && (
-        <ViewRoutesModal destination={location} onClose={() => setShowRoutes(false)} />
+        <RouteMapView
+          destination={location}
+          destinationName={title}
+          onClose={() => setShowRoutes(false)}
+        />
       )}
 
       {canEdit && (
@@ -454,6 +467,18 @@ export const DestinationModalCard: React.FC<DestinationModalCardProps> = ({
             imageUrls,
             location,
           }}
+        />
+      )}
+
+      {/* Comments Slider - inside modal */}
+      {id && (
+        <CommentsSlider
+          open={showComments}
+          onClose={() => setShowComments(false)}
+          itemId={id}
+          itemType="destination"
+          itemName={formattedTitle}
+          onProfileClick={onProfileClick}
         />
       )}
     </article>

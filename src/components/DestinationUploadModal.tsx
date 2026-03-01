@@ -286,11 +286,17 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({
         </div>
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
-            <label className="text-sm modal-stone-muted">Destination name</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm modal-stone-muted">Destination name</label>
+              <span className={`text-xs ${destinationName.length > 64 ? 'text-red-400' : 'modal-stone-soft'}`}>
+                {destinationName.length}/64
+              </span>
+            </div>
             <input
               type="text"
               value={destinationName}
-              onChange={(event) => setDestinationName(event.target.value)}
+              onChange={(event) => setDestinationName(event.target.value.slice(0, 64))}
+              maxLength={64}
               placeholder="San Vicente Cove"
               className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
             />
@@ -305,11 +311,17 @@ export const DestinationUploadModal: React.FC<DestinationUploadModalProps> = ({
             )}
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-sm modal-stone-muted">Description</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm modal-stone-muted">Description</label>
+              <span className={`text-xs ${description.length > 2200 ? 'text-red-400' : 'modal-stone-soft'}`}>
+                {description.length}/2,200
+              </span>
+            </div>
             <textarea
               rows={3}
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) => setDescription(event.target.value.slice(0, 2200))}
+              maxLength={2200}
               placeholder="Describe the destination..."
               className="rounded-lg bg-white/10 border border-white/15 px-4 py-2 text-sm modal-stone-text placeholder:text-primary focus:outline-none focus:ring-2 focus:ring-white/30"
             />

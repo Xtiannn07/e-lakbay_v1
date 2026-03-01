@@ -26,18 +26,20 @@ interface LocationPickerMapProps {
   initialLocation?: LocationData | null;
   hideIntro?: boolean;
   defaultPinMapOpen?: boolean;
+  showBarangay?: boolean;
 }
 
 const toLocationData = (
   coords: { lat: number; lng: number } | null,
   municipality: string,
   barangay: string,
+  includeBarangay: boolean = true,
 ): LocationData => ({
   lat: coords?.lat ?? null,
   lng: coords?.lng ?? null,
-  address: municipality && barangay ? `${barangay}, ${municipality}` : null,
+  address: municipality ? (includeBarangay && barangay ? `${barangay}, ${municipality}` : municipality) : null,
   municipality: municipality || null,
-  barangay: barangay || null,
+  barangay: includeBarangay ? (barangay || null) : null,
 });
 
 const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
@@ -46,6 +48,7 @@ const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   initialLocation,
   hideIntro = false,
   defaultPinMapOpen = false,
+  showBarangay = true,
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
   const initializedRef = useRef(false);
@@ -139,7 +142,7 @@ const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     <div className="flex flex-col gap-3">
       {!hideIntro && (
         <div className="rounded-2xl border border-white/15 bg-white/5 p-3 text-xs text-white/70">
-          Select a municipality and barangay. The map preview is optional if you want to refine the pin.
+          Select a municipality{showBarangay ? ' and barangay' : ''}. The map preview is optional if you want to refine the pin.
         </div>
       )}
 
@@ -166,23 +169,25 @@ const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
             ))}
           </select>
         </div>
-        <div>
-          <label htmlFor="location-barangay" className="text-xs text-white/60">Barangay</label>
-          <select
-            id="location-barangay"
-            value={barangay}
-            onChange={(event) => void handleBarangayChange(event.target.value)}
-            disabled={!municipality}
-            className="mt-1 w-full rounded-lg bg-white/10 border border-white/15 px-3 py-2 text-xs text-white disabled:opacity-60"
-          >
-            <option value="">Select barangay</option>
-            {barangays.map((item) => (
-              <option key={item} value={item} className="text-black">
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
+        {showBarangay && (
+          <div>
+            <label htmlFor="location-barangay" className="text-xs text-white/60">Barangay</label>
+            <select
+              id="location-barangay"
+              value={barangay}
+              onChange={(event) => void handleBarangayChange(event.target.value)}
+              disabled={!municipality}
+              className="mt-1 w-full rounded-lg bg-white/10 border border-white/15 px-3 py-2 text-xs text-white disabled:opacity-60"
+            >
+              <option value="">Select barangay</option>
+              {barangays.map((item) => (
+                <option key={item} value={item} className="text-black">
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <Accordion type="single" collapsible defaultValue={defaultPinMapOpen ? 'pin-map' : undefined}>

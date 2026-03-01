@@ -134,7 +134,7 @@ export const HomepageMunicipalitiesSection: React.FC<HomepageMunicipalitiesSecti
   }
 
   return (
-    <section id="municipalities" className=" text-foreground py-5 md:py-10 relative left-1/2 w-screen -ml-[50vw] -mr-[50vw]">
+    <section id="municipalities" className="text-foreground py-5 md:py-10 relative left-1/2 w-screen -ml-[50vw] -mr-[50vw] z-0">
       <div className="px-3 sm:px-4">
         <div
           ref={scrollerRef}

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
 import React from "react";
-import { HomepageSearchBar } from "./homepage_searchbar";
+import { HomepageSearchWithSuggestions } from "./homepage_searchbar";
 
 // ─── GradualSpacing Component ───────────────────────────────────────────────
 
@@ -52,9 +52,9 @@ interface HomepageHeroSectionProps {
   onSearch?: (value: string) => void;
 }
 
-export const HomepageHeroSection: React.FC<HomepageHeroSectionProps> = ({ onSearch }) => {
+export const HomepageHeroSection: React.FC<HomepageHeroSectionProps> = () => {
   return (
-    <section className="hero-section-bg relative flex items-center justify-center min-h-screen pt-24 md:pt-28">
+    <section className="hero-section-bg relative z-50 flex items-center justify-center min-h-screen pt-24 md:pt-28">
       <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/40 to-transparent" />
 
       <div className="relative z-10 w-full max-w-5xl px-4 sm:px-6 flex flex-col items-center">
@@ -89,14 +89,14 @@ export const HomepageHeroSection: React.FC<HomepageHeroSectionProps> = ({ onSear
           </motion.p>
         </div>
 
-        {/* Search bar */}
+        {/* Search bar with suggestions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 1.8 }}
-          className="mt-7 sm:mt-8 md:mt-10 w-full flex justify-center"
+          className="mt-7 sm:mt-8 md:mt-10 w-full flex justify-center relative z-[100]"
         >
-          <HomepageSearchBar onSearch={onSearch} />
+          <HomepageSearchWithSuggestions />
         </motion.div>
       </div>
     </section>

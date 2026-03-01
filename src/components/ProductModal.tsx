@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pencil, Star } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { useAuth } from './AuthProvider';
+import { CommentsSlider, CommentsToggleButton } from './CommentsSlider';
 import ViewRoutesModal from './ViewRoutesModal';
 import type { LocationData } from '../lib/locationTypes';
 import { preloadImageUrl } from '../lib/imagePreloadCache';
@@ -50,6 +51,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const { user } = useAuth();
   const [showRoutes, setShowRoutes] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [localProduct, setLocalProduct] = useState(product);
   const hasLocation = Boolean(localProduct.location && typeof localProduct.location.lat === 'number' && typeof localProduct.location.lng === 'number');
   const canEdit = Boolean(showEditControl && user?.id && localProduct.uploaderId && user.id === localProduct.uploaderId);
@@ -228,7 +230,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           aria-labelledby="product-modal-title"
           onClick={(event) => event.stopPropagation()}
         >
-          <article className="glass-secondary modal-stone-text border border-white/10 rounded-2xl p-4 sm:p-6">
+          <article className="relative glass-secondary modal-stone-text border border-white/10 rounded-2xl p-4 sm:p-6 overflow-hidden">
+            {/* Comments toggle button on right edge */}
+            {!showComments && (
+              <CommentsToggleButton
+                onClick={() => setShowComments(true)}
+                commentCount={localProduct.ratingCount}
+              />
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-5">
               <div
                 className="relative rounded-2xl overflow-hidden glass-card h-64 sm:h-80 md:h-150"
@@ -337,26 +346,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                               : undefined
                           }
                         />
-                        <div className="flex flex-row gap-0.5">
-                          {localProduct.location?.barangay ? (
-                            <span className="text-white/60">
-                              {[localProduct.location?.barangay]
-                                .filter(Boolean)
-                                .join(', ')}
-                            </span>
-                          ) : null}
-                          {localProduct.uploaderId && onProfileClick ? (
-                            <button
-                              type="button"
-                              onClick={() => onProfileClick(localProduct.uploaderId as string)}
-                              className="hover:underline hover:underline-offset-4 text-white"
-                            >
-                              {localProduct.uploaderName}
-                            </button>
-                          ) : (
-                            <span className="text-white">{localProduct.uploaderName}</span>
-                          )}
-                        </div>
+                        {localProduct.uploaderId && onProfileClick ? (
+                          <button
+                            type="button"
+                            onClick={() => onProfileClick(localProduct.uploaderId as string)}
+                            className="hover:underline hover:underline-offset-4 text-white"
+                          >
+                            {localProduct.uploaderName}
+                          </button>
+                        ) : (
+                          <span className="text-white">{localProduct.uploaderName}</span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -418,6 +418,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 )}
               </div>
             </div>
+
+            {/* Comments Slider - inside modal */}
+            <CommentsSlider
+              open={showComments}
+              onClose={() => setShowComments(false)}
+              itemId={localProduct.id}
+              itemType="product"
+              itemName={localProduct.name}
+              onProfileClick={onProfileClick}
+            />
           </article>
         </div>
         {showRoutes && localProduct.location && (

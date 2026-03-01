@@ -25,10 +25,14 @@ type RatedItem = {
   rating_count: number;
 };
 
+type TopSearchedItem = CountItem & {
+  type?: 'destination' | 'product';
+};
+
 type SearchDiscoveryAnalytics = {
   search_volume: number;
   top_destinations: CountItem[];
-  filter_usage: CountItem[];
+  top_searched: TopSearchedItem[];
 };
 
 type TrafficAcquisitionAnalytics = {
@@ -118,7 +122,7 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
       return (data ?? {
         search_volume: 0,
         top_destinations: [],
-        filter_usage: [],
+        top_searched: [],
       }) as SearchDiscoveryAnalytics;
     },
   });
@@ -161,8 +165,8 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
     (sum, item) => sum + (Number(item.sessions) || 0),
     0,
   );
-  const tealBarShades = ['#0f766e', '#0d9488', '#14b8a6', '#2dd4bf', '#0f766e', '#0d9488'];
-  const tealBarHighlights = ['#a7f3d0', '#99f6e4', '#7cefdc', '#5eead4', '#a7f3d0', '#99f6e4'];
+  const tealBarShades = ['#6366f1', '#8b5cf6', '#a855f7', '#3b82f6', '#06b6d4', '#10b981'];
+  const tealBarHighlights = ['#a5b4fc', '#c4b5fd', '#d8b4fe', '#93c5fd', '#67e8f9', '#6ee7b7'];
   const topLandingPagesWithFill = topLandingPages.map((item, index) => ({
     ...item,
     sessions: Number(item.sessions) || 0,
@@ -260,13 +264,12 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
             ) : topLandingPages.length === 0 ? (
               <p className="text-sm text-muted-foreground">No traffic data available yet.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={Math.max(280, topLandingPages.length * 32)}>
                 <BarChart
                   data={topLandingPagesWithFill}
                   layout="vertical"
-                  margin={{ top: 5, right: 1, left: -6, bottom: 5 }}
-                  barCategoryGap={0}
-                  barGap={0}
+                  margin={{ top: 8, right: 12, left: -6, bottom: 8 }}
+                  barCategoryGap="12%"
                 >
                   <defs>
                     {topLandingPagesWithFill.map((entry) => (
@@ -278,9 +281,9 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
                         x2="1"
                         y2="0"
                       >
-                        <stop offset="0%" stopColor={entry.highlight} />
-                        <stop offset="35%" stopColor="#2dd4bf" />
-                        <stop offset="100%" stopColor={entry.fill} />
+                        <stop offset="0%" stopColor={entry.fill} stopOpacity={0.9} />
+                        <stop offset="50%" stopColor={entry.highlight} stopOpacity={0.7} />
+                        <stop offset="100%" stopColor={entry.fill} stopOpacity={1} />
                       </linearGradient>
                     ))}
                   </defs>
@@ -297,33 +300,31 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
                     tickFormatter={formatLandingLabel}
                   />
                   <Tooltip
-                    cursor={false}
+                    cursor={{ fill: 'rgba(255,255,255,0.05)', radius: 4 }}
                     formatter={(value) => value}
                     labelFormatter={(label) => removeTrafficPrefix(String(label))}
                     itemStyle={{ color: '#ffffff' }}
-                    labelStyle={{ color: '#ffffff' }}
+                    labelStyle={{ color: '#ffffff', fontWeight: 500 }}
                     contentStyle={{
-                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                      border: '1px solid rgba(20, 184, 166, 0.3)',
-                      borderRadius: '6px',
+                      backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                      border: '1px solid rgba(99, 102, 241, 0.3)',
+                      borderRadius: '8px',
                       color: '#ffffff',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     }}
                   />
                   <Bar
                     dataKey="sessions"
-                    fill="#14b8a6"
+                    fill="#6366f1"
                     fillOpacity={1}
-                    barSize={10}
-                    radius={[0, 8, 8, 0]}
+                    radius={6}
                   >
                     {topLandingPagesWithFill.map((entry) => (
                       <Cell
                         key={`landing-page-${entry.label}`}
                         fill={`url(#${entry.gradientId})`}
                         fillOpacity={1}
-                        stroke={entry.fill}
-                        strokeWidth={1.2}
-                        strokeOpacity={1}
+                        style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}
                       />
                     ))}
                   </Bar>
@@ -341,27 +342,20 @@ export const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps>
           <h2 className="text-lg font-semibold mb-4">Search & Discovery</h2>
           <div className="grid gap-5">
             <div>
-              <h3 className="text-sm text-muted-foreground mb-3">Top Destinations (searched)</h3>
+              <h3 className="text-sm text-muted-foreground mb-3">Top Searched</h3>
               <ul className="space-y-2">
                 {isLoading
                   ? renderListSkeleton(6)
-                  : (searchDiscoveryData?.top_destinations ?? []).slice(0, 6).map((item) => (
+                  : (searchDiscoveryData?.top_searched ?? searchDiscoveryData?.top_destinations ?? []).slice(0, 6).map((item) => (
                   <li key={item.name} className="flex items-center justify-between text-sm">
-                    <span className="capitalize">{item.name}</span>
-                    <span className="text-muted-foreground">{item.count}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-sm text-muted-foreground mb-3">Filter Usage</h3>
-              <ul className="space-y-2">
-                {isLoading
-                  ? renderListSkeleton(6)
-                  : (searchDiscoveryData?.filter_usage ?? []).slice(0, 6).map((item) => (
-                  <li key={item.name} className="flex items-center justify-between text-sm">
-                    <span>{item.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="capitalize">{item.name}</span>
+                      {(item as TopSearchedItem).type && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/10 text-muted-foreground capitalize">
+                          {(item as TopSearchedItem).type}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-muted-foreground">{item.count}</span>
                   </li>
                 ))}

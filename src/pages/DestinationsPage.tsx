@@ -177,25 +177,7 @@ export const DestinationsPage: React.FC<DestinationsPageProps> = ({ onBackHome, 
     const query = searchQuery.trim();
     if (!query) return;
 
-    void trackSearchPerformed({
-      query,
-      scope: 'destinations',
-      resultCount: visibleDestinations.length,
-      userId: user?.id ?? null,
-      userRole: profile?.role ?? null,
-      pagePath: '/destinations',
-      filters: { filter_name: 'search_query' },
-    });
-
-    void trackFilterUsage({
-      scope: 'destinations',
-      filterName: 'search_query',
-      filterValue: query,
-      userId: user?.id ?? null,
-      userRole: profile?.role ?? null,
-      pagePath: '/destinations',
-      filters: { active_query: query },
-    });
+    // Removed analytics firing on search input change. Analytics now only fires on suggestion click in SearchSuggest.
   }, [isDestinationsPending, isDestinationsFetching, searchQuery, visibleDestinations.length, user?.id, profile?.role]);
 
   return (

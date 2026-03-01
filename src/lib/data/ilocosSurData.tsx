@@ -2,6 +2,16 @@ const ILOCOS_SUR = {
   "Alilem": ["Alilem Daya", "Amilongan", "Anaao", "Apang", "Apaya", "Batbato", "Daddaay", "Dalawa", "Kiat"],
   "Banayoyo": ["Bagbagotot", "Banbanaal", "Bisangol", "Cadanglaan", "Casilagan Norte", "Casilagan Sur", "Elefante", "Guardia", "Lintic", "Lopez", "Montero", "Naguimba", "Pila", "Poblacion"],
   "Burgos": ["Ambugat", "Balugang", "Bangbangar", "Bessang", "Cabcaburao", "Cadacad", "Callitong", "Dayanki", "Dirdirig", "Lesseb", "Lubing", "Lucaban", "Luna", "Macaoayan", "Mambug", "Manaboc", "Mapanit", "Nagpanaoan", "Paduros", "Patac", "Poblacion Norte", "Poblacion Sur", "Sabangan Pinggan", "Subadi Norte", "Subadi Sur", "Taliao"],
+  "Candon": [
+    "Allangigan Segundo", "Allangigan Primero", "Amguid", "Ayudante", "Bagani Campo",
+    "Bagani Gabor", "Bagani Tocgo", "Bagani Camposanto", "Banga", "Bani", "Bugnay",
+    "Calaoa-an", "Calongbuyan", "Capangdanan", "Daclapan", "Darapidap",
+    "Lingsat", "Maglaoi Centro", "Maglaoi Norte", "Maglaoi Sur", "Pallipis",
+    "Panay", "Paratong", "Paypayad", "Poblacion", "San Agustin",
+    "San Andres", "San Antonio", "San Isidro", "San Jose", "San Juan",
+    "San Nicolas", "San Pedro", "Santo Tomas","Tablac", "Tabucao", "Talogtog",
+    "Tampugo", "Villamar"
+  ],
   "Cervantes": ["Aluling", "Comillas North", "Comillas South", "Concepcion", "Dinwede East", "Dinwede West", "Libang", "Malaya", "Pilipil", "Remedios", "Rosario", "San Juan", "San Luis"],
   "Galimuyod": ["Abaya", "Baracbac", "Bidbiday", "Bitong", "Borobor", "Calimugtong", "Calongbuyan", "Calumbaya", "Daldagan", "Kilang", "Legaspi", "Mabayag", "Matanubong", "Mckinley", "Nagsingcaoan", "Oaig-Daya", "Pagangpang", "Patac", "Poblacion", "Rubio", "Sabangan-Bato", "Sacaang", "San Vicente", "Sapang"],
   "Gregorio del Pilar": ["Alfonso", "Bussot", "Concepcion", "Dapdappig", "Matue-Butarag", "Poblacion Norte", "Poblacion Sur"],

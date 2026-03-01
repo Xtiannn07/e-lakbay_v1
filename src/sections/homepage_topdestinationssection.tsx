@@ -262,6 +262,7 @@ export const HomepageTopDestinationsSection: React.FC<HomepageTopDestinationsSec
             onClick={(event) => event.stopPropagation()}
           >
             <DestinationModalCard
+              id={activeDestination.id}
               title={activeDestination.name}
               description={activeDestination.description || 'A featured destination from Ilocos Sur.'}
               imageUrl={activeDestination.imageUrl}
